@@ -36,11 +36,11 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
   const productId = typeof product.id === 'string' ? parseInt(product.id) : product.id
   console.log('ProductCard rendering for product:', product.name, 'ID:', productId, 'Type:', typeof product.id) // Debug log
 
-  // Function to add cache-busting parameter
+  // Function to get image URL without cache-busting for SSR consistency
   const getImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) return ''
     if (imageUrl.startsWith('http')) return imageUrl
-    return `${imageUrl}?v=${Date.now()}`
+    return imageUrl // Remove cache-busting for SSR consistency
   }
   
   const handleAddToCart = () => {

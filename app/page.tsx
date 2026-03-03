@@ -1,6 +1,7 @@
 import React from 'react'
 import Container from '@/components/Container'
 import HomeBanner from '@/components/HomeBanner'
+import ProductTicker from '@/components/ProductTicker'
 import FeaturedCategories from '@/components/FeaturedCategories'
 import FeaturedProducts from '@/components/FeaturedProducts'
 import SpecialOffers from '@/components/SpecialOffers'
@@ -13,6 +14,7 @@ export default function HomePage() {
       <Container className='py-8 sm:py-12'>
         <HomeBanner />
       </Container>
+      <ProductTicker />
       <FeaturedCategories />
       <FeaturedProducts />
       <SpecialOffers />

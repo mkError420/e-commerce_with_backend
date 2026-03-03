@@ -27,12 +27,13 @@ import { productsData } from '@/constants/data'
 const ProductDetailPage = () => {
   const params = useParams()
   const router = useRouter()
-  const { addToCart } = useCart()
+  const { addToCart, isInCart, updateQuantity } = useCart()
   const { openSlideCart } = useSlideCart()
   const id = params.id as string
   
   const [product, setProduct] = useState<any>(undefined)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState(0)
   const [isAddedToCart, setIsAddedToCart] = useState(false)
@@ -40,11 +41,11 @@ const ProductDetailPage = () => {
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [modalImageIndex, setModalImageIndex] = useState(0)
 
-  // Function to add cache-busting parameter
+  // Function to get image URL without cache-busting for SSR consistency
   const getImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) return ''
     if (imageUrl.startsWith('http')) return imageUrl
-    return `${imageUrl}?v=${Date.now()}`
+    return imageUrl // Remove cache-busting for SSR consistency
   }
   // Create an array of all product images (main + gallery)
   const getAllImages = () => {
@@ -115,10 +116,39 @@ const ProductDetailPage = () => {
   useEffect(() => {
     setLoading(true)
     fetch(`/api/products/${id}`).then(r => r.json()).then(d => {
-      if (d?.data) setProduct(d.data)
-      else setProduct(productsData.find((p: any) => String(p.id) === id))
-    }).catch(() => setProduct(productsData.find((p: any) => String(p.id) === id))).finally(() => setLoading(false))
-  }, [id])
+      if (d?.data) {
+        setProduct(d.data)
+        
+        // Sync quantity with cart if product is already in cart
+        if (d.data) {
+          // Check both string and number ID formats for compatibility
+          const productId = d.data.id
+          const productIdNum = Number(d.data.id)
+          
+          const isInCartString = isInCart(productId, 'product')
+          const isInCartNumber = isInCart(productIdNum, 'product')
+          
+          if (isInCartString || isInCartNumber) {
+            // Find the current quantity in cart and update local state
+            const cartItems = JSON.parse(localStorage.getItem('cart') || '[]')
+            const cartItem = cartItems.find((item: any) => 
+              item.itemType === 'product' && 
+              (item.product?.id === productId || item.product?.id === productIdNum || Number(item.product?.id) === productIdNum)
+            )
+            if (cartItem && cartItem.quantity) {
+              setQuantity(cartItem.quantity)
+              console.log('Synced quantity from cart:', cartItem.quantity)
+            }
+          }
+        }
+      }
+      setLoading(false)
+    }).catch(error => {
+      console.error('Error fetching product:', error)
+      setError('Failed to load product')
+      setLoading(false)
+    })
+  }, [id, isInCart])
 
   // Load reviews from localStorage on component mount
   React.useEffect(() => {
@@ -184,8 +214,33 @@ const ProductDetailPage = () => {
   }
 
   const handleQuantityChange = (newQuantity: number) => {
+    console.log('Quantity change requested:', newQuantity) // Debug log
     if (newQuantity >= 1 && newQuantity <= 10) {
       setQuantity(newQuantity)
+      console.log('Quantity set to:', newQuantity) // Debug log
+      
+      // Update cart quantity if product is already in cart
+      if (product) {
+        // Check both string and number ID formats for compatibility
+        const productId = product.id
+        const productIdNum = Number(product.id)
+        
+        const isInCartString = isInCart(productId, 'product')
+        const isInCartNumber = isInCart(productIdNum, 'product')
+        
+        console.log('Cart check - string ID:', productId, 'isInCart:', isInCartString)
+        console.log('Cart check - number ID:', productIdNum, 'isInCart:', isInCartNumber)
+        
+        if (isInCartString) {
+          console.log('Updating cart quantity for product (string ID):', productId, 'to:', newQuantity)
+          updateQuantity(productId, newQuantity, 'product')
+        } else if (isInCartNumber) {
+          console.log('Updating cart quantity for product (number ID):', productIdNum, 'to:', newQuantity)
+          updateQuantity(productIdNum, newQuantity, 'product')
+        }
+      }
+    } else {
+      console.log('Quantity change rejected:', newQuantity) // Debug log
     }
   }
 
@@ -514,15 +569,23 @@ const ProductDetailPage = () => {
                 <label className='text-sm font-medium text-gray-700'>Quantity:</label>
                 <div className='flex items-center border border-gray-300 rounded-lg'>
                   <button
-                    onClick={() => handleQuantityChange(quantity - 1)}
+                    onClick={() => {
+                      console.log('Minus button clicked, current quantity:', quantity)
+                      handleQuantityChange(quantity - 1)
+                    }}
                     className='p-2 hover:bg-gray-100 transition-colors'
+                    type='button'
                   >
                     <Minus className='w-4 h-4' />
                   </button>
                   <span className='px-4 py-2 font-medium'>{quantity}</span>
                   <button
-                    onClick={() => handleQuantityChange(quantity + 1)}
+                    onClick={() => {
+                      console.log('Plus button clicked, current quantity:', quantity)
+                      handleQuantityChange(quantity + 1)
+                    }}
                     className='p-2 hover:bg-gray-100 transition-colors'
+                    type='button'
                   >
                     <Plus className='w-4 h-4' />
                   </button>
