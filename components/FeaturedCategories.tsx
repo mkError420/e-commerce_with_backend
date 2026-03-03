@@ -18,6 +18,16 @@ import {
 import Link from 'next/link'
 import { useCategories } from '@/hooks/useCategories'
 
+interface Category {
+  id: string
+  title: string
+  slug: string
+  href: string
+  parentId?: string
+  icon?: string
+  subcategories?: Category[]
+}
+
 // Icon mapping for categories
 const iconMap: { [key: string]: any } = {
   'electronics': Smartphone,
@@ -156,6 +166,12 @@ const FeaturedCategories = () => {
   const displayCategories = loading ? fallbackCategories : categories.slice(0, 12)
 
   const getCategoryIcon = (category: any) => {
+    // If category has a custom icon (uploaded from Admin Dashboard), use it
+    if (category.icon) {
+      return null // Return null to render custom icon as img
+    }
+    
+    // Otherwise, use the hardcoded icon mapping
     const slug = category.slug?.toLowerCase() || category.title?.toLowerCase()
     return iconMap[slug] || iconMap.default
   }
@@ -195,14 +211,26 @@ const FeaturedCategories = () => {
                 href={href}
                 className='group'
               >
-                <div className='bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 text-center shadow-sm hover:shadow-xl transition-all duration-300 hoverEffect transform hover:-translate-y-2 border border-gray-100'>
-                  <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl ${color} mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className='w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7' />
+                <div className='bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 text-center shadow hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-shop_dark_green hover:bg-gradient-to-br hover:from-shop_light_green/5 hover:to-shop_dark_green/5 h-full flex flex-col justify-between min-h-[140px] sm:min-h-[160px] md:min-h-[180px] group cursor-pointer'>
+                  <div className='flex-1 flex flex-col items-center justify-center'>
+                    <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl ${color} mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                      {category.icon ? (
+                        <img 
+                          src={category.icon as string} 
+                          alt={category.title}
+                          className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded object-cover"
+                        />
+                      ) : Icon ? (
+                        <Icon className='w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7' />
+                      ) : (
+                        <Package className='w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7' />
+                      )}
+                    </div>
+                    <h3 className='text-xs sm:text-sm md:text-base font-semibold text-gray-900 group-hover:text-shop_dark_green transition-all duration-300 line-clamp-2 text-center flex-1 flex items-center justify-center min-h-[2.5rem] sm:min-h-[3rem] group-hover:scale-105'>
+                      {category.title}
+                    </h3>
                   </div>
-                  <h3 className='text-xs sm:text-sm md:text-base font-semibold text-gray-900 group-hover:text-shop_dark_green transition-colors duration-300 line-clamp-2'>
-                    {category.title}
-                  </h3>
-                  <div className='mt-1 text-xs text-gray-500'>
+                  <div className='mt-1 text-xs text-gray-500 group-hover:text-shop_dark_green transition-all duration-300 group-hover:font-medium'>
                     Shop Now →
                   </div>
                 </div>

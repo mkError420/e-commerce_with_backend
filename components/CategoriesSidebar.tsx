@@ -8,6 +8,8 @@ interface Category {
   title: string
   slug: string
   href: string
+  parentId?: string
+  icon?: string
   subcategories?: Category[]
 }
 
@@ -88,7 +90,15 @@ const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({
           <div className="flex items-center gap-3 flex-1">
             {level === 0 && (
               <div className="w-8 h-8 bg-shop_light_green/20 rounded-lg flex items-center justify-center">
-                <Package className="w-4 h-4 text-shop_dark_green" />
+                {category.icon ? (
+                  <img 
+                    src={category.icon} 
+                    alt={category.title}
+                    className="w-5 h-5 rounded object-cover"
+                  />
+                ) : (
+                  <Package className="w-4 h-4 text-shop_dark_green" />
+                )}
               </div>
             )}
             <span className={`font-medium ${level > 0 ? 'text-sm' : ''}`}>

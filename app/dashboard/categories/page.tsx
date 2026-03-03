@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Upload, X } from 'lucide-react'
 import { api } from '@/lib/api-client'
 
 interface Category {
@@ -11,6 +11,7 @@ interface Category {
   href: string
   parentId?: string
   isMain?: boolean
+  icon?: string
   subcategories?: Category[]
 }
 
@@ -18,7 +19,9 @@ export default function DashboardCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ title: '', slug: '', href: '', parentId: '', isMain: false })
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [form, setForm] = useState({ title: '', slug: '', href: '', parentId: '', isMain: false, icon: '' })
+  const [iconPreview, setIconPreview] = useState<string>('')
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
 
   useEffect(() => { 
@@ -42,11 +45,19 @@ export default function DashboardCategoriesPage() {
       title: form.title,
       slug: form.slug || form.title.toLowerCase().replace(/\s+/g, '-'),
       href: form.href || (form.slug || form.title.toLowerCase().replace(/\s+/g, '-')),
-      parentId: form.isMain ? undefined : form.parentId
+      parentId: form.isMain ? undefined : form.parentId,
+      icon: form.icon
     }
     
-    await api.categories.create(categoryData)
-    setForm({ title: '', slug: '', href: '', parentId: '', isMain: false })
+    if (editingCategory) {
+      // Update existing category
+      await api.categories.update(editingCategory.id, categoryData)
+    } else {
+      // Create new category
+      await api.categories.create(categoryData)
+    }
+    
+    resetForm()
     setShowForm(false)
     
     // Refresh categories
@@ -61,6 +72,26 @@ export default function DashboardCategoriesPage() {
       
       setCategories(structuredCategories)
     })
+  }
+
+  const resetForm = () => {
+    setForm({ title: '', slug: '', href: '', parentId: '', isMain: false, icon: '' })
+    setIconPreview('')
+    setEditingCategory(null)
+  }
+
+  const handleEdit = (category: Category) => {
+    setEditingCategory(category)
+    setForm({
+      title: category.title,
+      slug: category.slug,
+      href: category.href,
+      parentId: category.parentId || '',
+      isMain: !category.parentId,
+      icon: category.icon || ''
+    })
+    setIconPreview(category.icon || '')
+    setShowForm(true)
   }
 
   const handleDelete = async (id: string, title: string) => {
@@ -79,11 +110,41 @@ export default function DashboardCategoriesPage() {
     setExpandedCategories(newExpanded)
   }
 
+  const handleIconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Create a URL for preview
+      const imageUrl = URL.createObjectURL(file)
+      setIconPreview(imageUrl)
+      
+      // In a real application, you would upload this to a service like Cloudinary, AWS S3, or your own server
+      // For now, we'll store the file data as base64 or use a placeholder
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        // Store the base64 data or file reference
+        setForm({ ...form, icon: reader.result as string })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const removeIcon = () => {
+    setForm({ ...form, icon: '' })
+    setIconPreview('')
+  }
+
   const renderCategoryRow = (category: Category, level: number = 0) => (
     <React.Fragment key={category.id}>
       <tr className="border-b hover:bg-gray-50">
         <td className="px-4 py-3">
           <div className="flex items-center" style={{ paddingLeft: `${level * 20}px` }}>
+            {category.icon && (
+              <img 
+                src={category.icon} 
+                alt={category.title}
+                className="w-6 h-6 mr-2 rounded object-cover"
+              />
+            )}
             {category.subcategories && category.subcategories.length > 0 && (
               <button 
                 onClick={() => toggleExpanded(category.id)}
@@ -104,6 +165,7 @@ export default function DashboardCategoriesPage() {
         <td className="px-4 py-3 text-gray-600">{category.slug}</td>
         <td className="px-4 py-3 text-gray-600">{category.href}</td>
         <td className="px-4 py-3 text-right">
+          <button onClick={() => handleEdit(category)} className="p-2 text-blue-600 hover:bg-blue-50 rounded mr-2"><Pencil className="w-4 h-4" /></button>
           <button onClick={() => handleDelete(category.id, category.title)} className="p-2 text-red-600 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4" /></button>
         </td>
       </tr>
@@ -118,12 +180,15 @@ export default function DashboardCategoriesPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-800">Categories</h2>
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-          <Plus className="w-4 h-4" /> Add Category
+        <button onClick={() => { resetForm(); setShowForm(!showForm) }} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+          <Plus className="w-4 h-4" /> {editingCategory ? 'Edit Category' : 'Add Category'}
         </button>
       </div>
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 mb-6 max-w-2xl">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            {editingCategory ? 'Edit Category' : 'Add New Category'}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Category Type</label>
@@ -202,9 +267,44 @@ export default function DashboardCategoriesPage() {
               />
             </div>
           </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category Icon</label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors relative">
+              {iconPreview || form.icon ? (
+                <div className="relative">
+                  <img 
+                    src={iconPreview || form.icon} 
+                    alt="Icon preview" 
+                    className="w-16 h-16 mx-auto rounded-lg object-cover mb-2"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeIcon}
+                    className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-2">Click to upload icon</p>
+                  <p className="text-xs text-gray-500">PNG, JPG, GIF up to 2MB</p>
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleIconUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+            </div>
+          </div>
           <div className="flex gap-3 mt-4">
-            <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">Add Category</button>
-            <button type="button" onClick={() => setShowForm(false)} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
+            <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+              {editingCategory ? 'Update Category' : 'Add Category'}
+            </button>
+            <button type="button" onClick={() => { resetForm(); setShowForm(false) }} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
           </div>
         </form>
       )}

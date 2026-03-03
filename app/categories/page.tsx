@@ -11,6 +11,7 @@ interface Category {
   slug: string
   href: string
   parentId?: string
+  icon?: string
   subcategories?: Category[]
   count?: number
 }
@@ -102,7 +103,15 @@ export default function CategoriesPage() {
               <div className="flex items-center gap-4 flex-1">
                 {/* Icon */}
                 <div className="w-14 h-14 bg-gradient-to-br from-shop_light_green/20 to-shop_dark_green/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Package className="w-7 h-7 text-shop_dark_green" />
+                  {category.icon ? (
+                    <img 
+                      src={category.icon} 
+                      alt={category.title}
+                      className="w-8 h-8 rounded object-cover"
+                    />
+                  ) : (
+                    <Package className="w-7 h-7 text-shop_dark_green" />
+                  )}
                 </div>
                 
                 {/* Content */}
@@ -158,7 +167,15 @@ export default function CategoriesPage() {
                   <div key={sub.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-shop_light_green transition-all duration-200 hover:shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-shop_light_green/20 rounded-lg flex items-center justify-center">
-                        <Package className="w-4 h-4 text-shop_dark_green" />
+                        {sub.icon ? (
+                          <img 
+                            src={sub.icon} 
+                            alt={sub.title}
+                            className="w-4 h-4 rounded object-cover"
+                          />
+                        ) : (
+                          <Package className="w-4 h-4 text-shop_dark_green" />
+                        )}
                       </div>
                       <div>
                         <Link 

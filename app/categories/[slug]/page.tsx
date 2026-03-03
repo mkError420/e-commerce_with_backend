@@ -5,6 +5,16 @@ import Container from '@/components/Container'
 import ProductCard from '@/components/ProductCard'
 import Pagination from '@/components/Pagination'
 import { useCategories, useFlatCategories } from '@/hooks'
+
+interface Category {
+  id: string
+  title: string
+  slug: string
+  href: string
+  parentId?: string
+  icon?: string
+  subcategories?: Category[]
+}
 import { api } from '@/lib/api-client'
 import { ArrowLeft, Filter, Grid, List, Package } from 'lucide-react'
 import Link from 'next/link'
@@ -418,9 +428,17 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                         className="bg-white p-4 rounded-lg border border-gray-200 hover:border-shop_dark_green hover:shadow-md transition-all duration-200"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-shop_light_green/20 rounded-lg flex items-center justify-center">
-                            <Package className="w-4 h-4 text-shop_dark_green" />
-                          </div>
+                          {sub.icon ? (
+                            <img 
+                              src={sub.icon} 
+                              alt={sub.title}
+                              className="w-6 h-6 rounded object-cover"
+                            />
+                          ) : (
+                            <div className="w-6 h-6 bg-shop_light_green/20 rounded-lg flex items-center justify-center">
+                              <Package className="w-3 h-3 text-shop_dark_green" />
+                            </div>
+                          )}
                           <div>
                             <h5 className="font-medium text-gray-900 text-sm">{sub.title}</h5>
                             <p className="text-xs text-gray-500">

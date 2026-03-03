@@ -7,6 +7,7 @@ interface Category {
   slug: string
   href: string
   parentId?: string
+  icon?: string
   subcategories?: Category[]
 }
 
