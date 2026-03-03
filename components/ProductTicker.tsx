@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import ProductCard from './ProductCard'
-import { productsData } from '@/constants/data'
-import { Pause, Play } from 'lucide-react'
+import { Star } from 'lucide-react'
 import { api } from '@/lib/api-client'
 
 const ProductTicker = () => {
@@ -13,25 +11,30 @@ const ProductTicker = () => {
   const [isPaused, setIsPaused] = useState(false)
   const tickerRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<number | undefined>(undefined)
-  const scrollSpeed = 1.5 // pixels per frame for smooth ticker
+  const scrollSpeed = 1.5
   
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await api.products.list() as any
-        const allProducts = Array.isArray(response) ? response : productsData
+        const response = await api.products.list()
+        const allProducts = Array.isArray(response) ? response : []
         
-        // Sort by ID (assuming higher IDs are more recent) and take last 8
+        if (allProducts.length === 0) {
+          console.warn('No products available from API')
+          setProducts([])
+          return
+        }
+        
         const sortedProducts = allProducts.sort((a: any, b: any) => {
           const idA = Number(a.id) || 0
           const idB = Number(b.id) || 0
-          return idB - idA // Descending order (newest first)
+          return idB - idA
         })
         
         setProducts(sortedProducts.slice(0, 8))
       } catch (error) {
         console.error('Error fetching products:', error)
-        setProducts(productsData.slice(0, 8))
+        setProducts([])
       } finally {
         setLoading(false)
       }
@@ -40,7 +43,6 @@ const ProductTicker = () => {
     fetchProducts()
   }, [])
 
-  // Ticker animation
   useEffect(() => {
     if (!tickerRef.current || loading) return
 
@@ -52,13 +54,9 @@ const ProductTicker = () => {
       if (!isPaused && isAnimating && tickerContainer) {
         scrollPosition += scrollSpeed
         
-        // Get the total scrollable width
         const maxScroll = tickerContainer.scrollWidth - tickerContainer.clientWidth
+        const oneSetWidth = maxScroll / 2
         
-        // Calculate the width of one set of products
-        const oneSetWidth = maxScroll / 2 // Since we have 2 sets for seamless loop
-        
-        // Reset to start when we reach the end of the first set for infinite loop
         if (scrollPosition >= oneSetWidth) {
           scrollPosition = 0
           tickerContainer.scrollLeft = 0
@@ -67,13 +65,12 @@ const ProductTicker = () => {
         }
       }
       
-      // Continue the animation loop
       if (isAnimating) {
         animationRef.current = requestAnimationFrame(animate)
       }
     }
 
-    // Start animation immediately
+    // Start the animation immediately
     animationRef.current = requestAnimationFrame(animate)
 
     return () => {
@@ -84,10 +81,6 @@ const ProductTicker = () => {
     }
   }, [loading, isPaused, scrollSpeed, products.length])
 
-  const togglePause = () => {
-    setIsPaused(!isPaused)
-  }
-
   const handleMouseEnter = () => {
     setIsPaused(true)
   }
@@ -96,20 +89,80 @@ const ProductTicker = () => {
     setIsPaused(false)
   }
 
-  // Duplicate products array for seamless infinite scroll
+  const TickerProductCard = ({ product }: { product: any }) => {
+    const imageUrl = product.image || null
+    
+    return (
+      <Link href={`/product/${product.id}`}>
+        <div className='flex-none w-56 h-64 bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer hover:shadow-lg flex flex-col'>
+          {/* Product Image - Fixed height */}
+          <div className='w-full h-32 bg-gray-100 rounded-md overflow-hidden mb-3 flex-shrink-0'>
+            {imageUrl ? (
+              <img 
+                src={imageUrl}
+                alt={product.name}
+                className='w-full h-full object-cover'
+              />
+            ) : (
+              <div className='w-full h-full bg-gray-200 flex items-center justify-center'>
+                <span className='text-gray-400 text-xs'>No Image</span>
+              </div>
+            )}
+          </div>
+
+          {/* Product Name - Fixed height */}
+          <h4 className='text-sm font-semibold text-gray-900 mb-1 line-clamp-2 leading-tight h-8 flex-shrink-0'>
+            {product.name}
+          </h4>
+
+          {/* Rating - Fixed height */}
+          <div className='flex items-center mb-2 h-5 flex-shrink-0'>
+            {product.rating ? (
+              <>
+                <div className='flex text-yellow-400'>
+                  {[...Array(5)].map((_, i) => (
+                    <Star 
+                      key={i} 
+                      className={`w-3 h-3 ${i < Math.floor(product.rating) ? 'fill-current' : 'fill-gray-300'}`} 
+                    />
+                  ))}
+                </div>
+                <span className='text-xs text-gray-600 ml-1'>
+                  {product.rating?.toFixed(1)} ({product.reviews || 0})
+                </span>
+              </>
+            ) : (
+              <div className="h-5" />
+            )}
+          </div>
+
+          {/* Price - Fixed height */}
+          <div className='flex items-center justify-between h-6 flex-shrink-0 mt-auto'>
+            <span className='text-lg font-bold text-shop_dark_green'>
+              ${product.price?.toFixed(2)}
+            </span>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span className='text-xs text-gray-500 line-through'>
+                ${product.originalPrice?.toFixed(2)}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    )
+  }
+
   const tickerProducts = [...products, ...products]
 
   if (loading) {
     return (
       <section className='py-6 bg-gradient-to-r from-shop_dark_green/5 to-shop_orange/5 border-y border-shop_dark_green/10'>
         <div className='max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8'>
-          <div className='mb-4'>
-            {/* Empty header for spacing */}
-          </div>
+          <div className='mb-4' />
           <div className='flex gap-4 overflow-x-auto'>
             {[...Array(4)].map((_, index) => (
-              <div key={index} className='flex-none w-64'>
-                <div className='bg-gray-200 rounded-lg h-48 animate-pulse'></div>
+              <div key={index} className='flex-none w-56'>
+                <div className='bg-gray-200 rounded-lg h-32 animate-pulse' />
               </div>
             ))}
           </div>
@@ -121,12 +174,7 @@ const ProductTicker = () => {
   return (
     <section className='py-6 bg-gradient-to-r from-shop_dark_green/5 to-shop_orange/5 border-y border-shop_dark_green/10'>
       <div className='max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8'>
-        {/* Ticker Header */}
-        <div className='mb-4'>
-          {/* Empty header for spacing */}
-        </div>
-
-        {/* Ticker Container */}
+        <div className='mb-4' />
         <div 
           className='relative overflow-hidden'
           onMouseEnter={handleMouseEnter}
@@ -143,9 +191,9 @@ const ProductTicker = () => {
             {tickerProducts.map((product: any, index: number) => (
               <div 
                 key={`${product.id}-${index}`} 
-                className='flex-none w-64'
+                className='flex-none w-56'
               >
-                <ProductCard product={product} viewMode="grid" />
+                <TickerProductCard product={product} />
               </div>
             ))}
           </div>
