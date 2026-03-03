@@ -63,7 +63,7 @@ const colorMap: { [key: string]: string } = {
 const FeaturedCategories = () => {
   const { categories, loading, error } = useCategories()
 
-  // Fallback categories if API fails - now 12 categories
+  // Fallback categories if API fails - now 6 categories for mobile
   const fallbackCategories = [
     {
       id: '1',
@@ -107,54 +107,6 @@ const FeaturedCategories = () => {
     },
     {
       id: '6',
-      title: 'Gaming',
-      slug: 'gaming',
-      href: '/categories/gaming',
-      icon: Gamepad2,
-      color: 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
-    },
-    {
-      id: '7',
-      title: 'Photography',
-      slug: 'photography',
-      href: '/categories/photography',
-      icon: Camera,
-      color: 'bg-teal-100 text-teal-600 hover:bg-teal-200'
-    },
-    {
-      id: '8',
-      title: 'Computers',
-      slug: 'computers',
-      href: '/categories/computers',
-      icon: Laptop,
-      color: 'bg-purple-100 text-purple-600 hover:bg-purple-200'
-    },
-    {
-      id: '9',
-      title: 'Mobile Phones',
-      slug: 'mobiles',
-      href: '/categories/mobiles',
-      icon: Smartphone,
-      color: 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-    },
-    {
-      id: '10',
-      title: 'Appliances',
-      slug: 'appliances',
-      href: '/categories/appliances',
-      icon: Home,
-      color: 'bg-green-100 text-green-600 hover:bg-green-200'
-    },
-    {
-      id: '11',
-      title: 'Smartphones',
-      slug: 'smartphones',
-      href: '/categories/smartphones',
-      icon: Smartphone,
-      color: 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-    },
-    {
-      id: '12',
       title: 'More',
       slug: 'more',
       href: '/categories',
@@ -163,7 +115,7 @@ const FeaturedCategories = () => {
     }
   ]
 
-  const displayCategories = loading ? fallbackCategories : categories.slice(0, 12)
+  const displayCategories = loading ? fallbackCategories : categories.slice(0, 6)
 
   const getCategoryIcon = (category: any) => {
     // If category has a custom icon (uploaded from Admin Dashboard), use it
@@ -199,7 +151,7 @@ const FeaturedCategories = () => {
         </div>
 
         {/* Categories Grid */}
-        <div className='grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-6'>
+        <div className='grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-6'>
           {displayCategories.map((category, index) => {
             const Icon = getCategoryIcon(category)
             const color = getCategoryColor(category)

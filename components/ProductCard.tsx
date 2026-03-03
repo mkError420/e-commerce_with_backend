@@ -285,65 +285,65 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
   return (
     <>
       {/* Grid View */}
-      <div className='group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col'>
+      <div className='group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col sm:h-80 md:h-80 lg:h-full'>
       {/* Product Image Container */}
-      <div className='relative overflow-hidden bg-gray-50 flex-shrink-0'>
+      <div className='relative overflow-hidden bg-gray-50 flex-shrink-0 h-48 sm:h-56 md:h-56'>
         {/* Badge */}
         {product.badge && (
-          <div className='absolute top-4 left-4 z-10'>
-            <span className='bg-shop_orange text-white px-3 py-1 rounded-full text-xs font-semibold'>
+          <div className='absolute top-2 sm:top-4 left-2 sm:left-4 z-10'>
+            <span className='bg-shop_orange text-white px-2 py-1 rounded-full text-xs font-semibold'>
               {product.badge}
             </span>
           </div>
         )}
         
         {/* Discount Badge */}
-        <div className='absolute top-4 right-4 z-10'>
-          <span className='bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold'>
+        <div className='absolute top-2 sm:top-4 right-2 sm:right-4 z-10'>
+          <span className='bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold'>
             -{discountPercentage}%
           </span>
         </div>
 
         {/* Action Buttons - Desktop (Hover) */}
-        <div className='absolute top-4 right-4 z-10 hidden md:block opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+        <div className='absolute top-2 sm:top-4 right-2 sm:right-4 z-10 hidden md:block opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
           <div className='flex flex-col gap-2'>
             <button 
               onClick={handleWishlistToggle}
-              className={`bg-white p-2 rounded-full shadow-md hover:bg-shop_light_pink hoverEffect transition-colors duration-300 ${
+              className={`bg-white p-1.5 sm:p-2 rounded-full shadow-md hover:bg-shop_light_pink hoverEffect transition-colors duration-300 ${
                 isInWishlist ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
               }`}
             >
-              <Heart className={`w-4 h-4 ${isInWishlist ? 'fill-current' : ''}`} />
+              <Heart className={`w-3 h-3 sm:w-4 sm:h-4 ${isInWishlist ? 'fill-current' : ''}`} />
             </button>
             <button 
               onClick={handleQuickView}
-              className='bg-white p-2 rounded-full shadow-md hover:bg-shop_light_pink hoverEffect'
+              className='bg-white p-1.5 sm:p-2 rounded-full shadow-md hover:bg-shop_light_pink hoverEffect'
             >
-              <Eye className='w-4 h-4 text-gray-600 hover:text-shop_dark_green' />
+              <Eye className={`w-3 h-3 sm:w-4 sm:h-4 text-gray-600 hover:text-shop_dark_green`} />
             </button>
           </div>
         </div>
 
         {/* Action Buttons - Mobile (Always Visible) */}
-        <div className='absolute bottom-4 left-4 z-10 md:hidden flex gap-2'>
+        <div className='absolute bottom-2 sm:bottom-4 left-2 sm:left-4 z-10 md:hidden flex gap-2'>
           <button 
             onClick={handleWishlistToggle}
-            className={`bg-white/90 backdrop-blur-sm p-2.5 rounded-full shadow-lg hover:bg-shop_light_pink hoverEffect transition-colors duration-300 ${
+            className={`bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-shop_light_pink hoverEffect transition-colors duration-300 ${
               isInWishlist ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
             }`}
           >
-            <Heart className={`w-5 h-5 ${isInWishlist ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 ${isInWishlist ? 'fill-current' : ''}`} />
           </button>
           <button 
             onClick={handleQuickView}
-            className='bg-white/90 backdrop-blur-sm p-2.5 rounded-full shadow-lg hover:bg-shop_light_pink hoverEffect'
+            className='bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-shop_light_pink hoverEffect'
           >
-            <Eye className='w-5 h-5 text-gray-600 hover:text-shop_dark_green' />
+            <Eye className={`w-4 h-4 text-gray-600 hover:text-shop_dark_green`} />
           </button>
         </div>
 
         {/* Product Image */}
-        <div className='w-full h-64 relative'>
+        <div className='w-full h-48 sm:h-56 md:h-64 relative'>
           {product.image ? (
             product.image.startsWith('/api/placeholder/') ? (
               <img 
@@ -361,7 +361,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                   target.style.display = 'none';
                   const parent = target.parentElement;
                   if (parent) {
-                    parent.innerHTML = '<div class="w-full h-64 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center"><div class="text-gray-400 text-center"><div class="w-24 h-24 bg-gray-300 rounded-lg mx-auto mb-2"></div><p class="text-sm">Image not available</p></div></div>';
+                    parent.innerHTML = '<div class="w-full h-48 sm:h-56 md:h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center"><div class="text-gray-400 text-center"><div class="w-16 sm:w-20 sm:w-24 bg-gray-300 rounded-lg mx-auto mb-2"></div><p class="text-xs sm:text-sm">Image not available</p></div></div>';
                   }
                 }}
               />
@@ -375,16 +375,16 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                   target.style.display = 'none';
                   const parent = target.parentElement;
                   if (parent) {
-                    parent.innerHTML = '<div class="w-full h-64 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center"><div class="text-gray-400 text-center"><div class="w-24 h-24 bg-gray-300 rounded-lg mx-auto mb-2"></div><p class="text-sm">Image not available</p></div></div>';
+                    parent.innerHTML = '<div class="w-full h-48 sm:h-56 md:h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center"><div class="text-gray-400 text-center"><div class="w-16 sm:w-20 sm:w-24 bg-gray-300 rounded-lg mx-auto mb-2"></div><p class="text-xs sm:text-sm">Image not available</p></div></div>';
                   }
                 }}
               />
             )
           ) : (
-            <div className='w-full h-64 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
+            <div className='w-full h-48 sm:h-56 md:h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
               <div className='text-gray-400 text-center'>
-                <div className='w-24 h-24 bg-gray-300 rounded-lg mx-auto mb-2'></div>
-                <p className='text-sm'>Product Image</p>
+                <div className='w-16 sm:w-20 sm:w-24 bg-gray-300 rounded-lg mx-auto mb-2'></div>
+                <p className='text-xs sm:text-sm'>Product Image</p>
               </div>
             </div>
           )}
@@ -392,57 +392,59 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
       </div>
 
       {/* Product Info */}
-      <div className='p-6 flex-1 flex flex-col'>
-        {/* Category */}
-        <div className='text-xs text-shop_dark_green font-semibold mb-2 uppercase tracking-wide'>
-          {product.category}
-        </div>
-
-        {/* Product Name */}
-        <h3 className='text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-shop_dark_green transition-colors duration-300'>
-          <Link href={`/product/${product.id}`}>
-            {product.name}
-          </Link>
-        </h3>
-
-        {/* Rating */}
-        <div className='flex items-center gap-2 mb-3'>
-          <div className='flex items-center'>
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`w-4 h-4 ${
-                  product.rating && i < Math.floor(product.rating)
-                    ? 'text-yellow-400 fill-current'
-                    : 'text-gray-300'
-                }`}
-              />
-            ))}
+      <div className='p-3 sm:p-4 md:p-4 flex-1 flex flex-col justify-between min-h-[200px] sm:min-h-[220px] md:min-h-[240px]'>
+        <div className='flex-1 flex flex-col'>
+          {/* Category */}
+          <div className='text-xs text-shop_dark_green font-semibold mb-1 sm:mb-2 uppercase tracking-wide'>
+            {product.category}
           </div>
-          <span className='text-sm text-gray-600'>
-            {product.rating || 0} ({product.reviews || 0})
-          </span>
-        </div>
 
-        {/* Price */}
-        <div className='flex items-center gap-3 mb-4'>
-          <span className='text-xl font-bold text-shop_dark_green'>
-            ৳{product.price}
-          </span>
-          {product.originalPrice && (
-            <span className='text-lg text-gray-400 line-through'>
-              ৳{product.originalPrice}
+          {/* Product Name */}
+          <h3 className='text-sm sm:text-base font-semibold text-gray-900 mb-1 sm:mb-2 line-clamp-2 group-hover:text-shop_dark_green transition-colors duration-300'>
+            <Link href={`/product/${product.id}`}>
+              {product.name}
+            </Link>
+          </h3>
+
+          {/* Rating */}
+          <div className='flex items-center gap-1 sm:gap-2 mb-2 sm:mb-3'>
+            <div className='flex items-center'>
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-3 h-3 sm:w-4 sm:h-4 ${
+                    product.rating && i < Math.floor(product.rating)
+                      ? 'text-yellow-400 fill-current'
+                      : 'text-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+            <span className='text-xs sm:text-sm text-gray-600'>
+              {product.rating || 0} ({product.reviews || 0})
             </span>
-          )}
+          </div>
+
+          {/* Price */}
+          <div className='flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3'>
+            <span className='text-lg sm:text-xl font-bold text-shop_dark_green'>
+              ৳{product.price}
+            </span>
+            {product.originalPrice && (
+              <span className='text-sm sm:text-lg text-gray-400 line-through'>
+                ৳{product.originalPrice}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Add to Cart Button */}
-        <div className='mt-auto pt-4'>
+        <div className='pt-2 sm:pt-3 mt-auto'>
           <button 
             onClick={handleAddToCart}
-            className='w-full bg-shop_btn_dark_green text-white py-2 rounded-lg font-semibold hover:bg-shop_dark_green hover:shadow-lg hoverEffect flex items-center justify-center gap-2 group/btn text-sm'
+            className='w-full bg-shop_btn_dark_green text-white py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-shop_dark_green hover:shadow-lg hoverEffect flex items-center justify-center gap-2 group/btn:scale-105 transition-transform duration-300 text-xs sm:text-sm'
           >
-            <ShoppingCart className='w-4 h-4 group-hover/btn:scale-110 transition-transform duration-300' />
+            <ShoppingCart className='w-3 h-3 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform duration-300' />
             Add to Cart
           </button>
         </div>
