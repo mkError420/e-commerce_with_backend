@@ -90,23 +90,6 @@ export default function NewBlogPage() {
       console.log('Featured field in blogData:', blogData.featured)
       console.log('Featured field type:', typeof blogData.featured)
       
-      // Test API call directly
-      const response = await fetch('/api/blog', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(blogData)
-      })
-      
-      const result = await response.json()
-      console.log('API Response:', result)
-      console.log('Featured field in API response:', result.data?.featured)
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'API request failed')
-      }
-      
       const createdPost = await api.blog.create(blogData)
       console.log('Blog post created successfully:', createdPost)
       console.log('Featured field in created post:', createdPost.featured)

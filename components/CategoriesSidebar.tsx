@@ -76,7 +76,14 @@ const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({
               : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200'
             }
           `}
-          onClick={() => onCategorySelect(category.slug)}
+          onClick={() => {
+            // Toggle expansion if category has subcategories
+            if (category.subcategories && category.subcategories.length > 0) {
+              toggleCategoryExpansion(category.id)
+            }
+            // Also select the category
+            onCategorySelect(category.slug)
+          }}
         >
           <div className="flex items-center gap-3 flex-1">
             {level === 0 && (
@@ -117,40 +124,44 @@ const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({
         </div>
 
         {/* Subcategories */}
-        {isExpanded && category.subcategories && category.subcategories.length > 0 && (
-          <div className="mt-2 space-y-1">
-            {category.subcategories.map(subcategory => {
-              const subProductCount = countSubProducts(subcategory)
-              const isSubSelected = isCategorySelected(subcategory.id)
-              
-              return (
-                <div
-                  key={subcategory.id}
-                  className={`
-                    flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ml-8
-                    ${isSubSelected 
-                      ? 'bg-shop_light_green text-white' 
-                      : 'hover:bg-gray-50 text-gray-600'
-                    }
-                  `}
-                  onClick={() => onCategorySelect(subcategory.slug)}
-                >
-                  <div className="flex items-center gap-2 flex-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                    <span className="text-sm">{subcategory.title}</span>
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        }`}>
+          {category.subcategories && category.subcategories.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {category.subcategories.map(subcategory => {
+                const subProductCount = countSubProducts(subcategory)
+                const isSubSelected = isCategorySelected(subcategory.id)
+                
+                return (
+                  <div
+                    key={subcategory.id}
+                    className={`
+                      flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ml-8
+                      ${isSubSelected 
+                        ? 'bg-shop_light_green text-white' 
+                        : 'hover:bg-gray-50 text-gray-600'
+                      }
+                    `}
+                    onClick={() => onCategorySelect(subcategory.slug)}
+                  >
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                      <span className="text-sm">{subcategory.title}</span>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      isSubSelected 
+                        ? 'bg-white/20 text-white' 
+                        : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {subProductCount}
+                    </span>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    isSubSelected 
-                      ? 'bg-white/20 text-white' 
-                      : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {subProductCount}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
     )
   }
