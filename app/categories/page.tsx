@@ -97,8 +97,8 @@ export default function CategoriesPage() {
     
     return (
       <div key={category.id} className={`${level > 0 ? 'ml-4' : ''}`}>
-        <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden group">
-          <div className="p-6">
+        <div className="bg-white rounded-xl shadow hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden group hover:border-shop_dark_green hover:bg-gradient-to-br hover:from-shop_light_green/5 hover:to-shop_dark_green/5 cursor-pointer">
+          <div className="p-6 h-full flex flex-col justify-between min-h-[180px]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4 flex-1">
                 {/* Icon */}
@@ -118,16 +118,16 @@ export default function CategoriesPage() {
                 <div className="flex-1">
                   <Link 
                     href={`/categories/${category.slug}`}
-                    className="text-xl font-bold text-gray-900 hover:text-shop_dark_green transition-colors duration-200 block"
+                    className="text-xl font-bold text-gray-900 hover:text-shop_dark_green transition-all duration-300 block group-hover:scale-105"
                   >
                     {category.title}
                   </Link>
                   <div className="flex items-center gap-4 mt-2">
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 group-hover:text-shop_dark_green transition-colors duration-300">
                       {category.count || 0} products
                     </span>
                     {hasSubcategories && (
-                      <span className="text-sm text-shop_orange font-medium">
+                      <span className="text-sm text-shop_orange font-medium group-hover:scale-105 transition-transform duration-300">
                         {category.subcategories?.length || 0} subcategories
                       </span>
                     )}
@@ -140,20 +140,20 @@ export default function CategoriesPage() {
                 {hasSubcategories && (
                   <button 
                     onClick={() => toggleExpanded(category.id)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:scale-110"
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:scale-110 group-hover:bg-shop_light_green/20"
                   >
                     {isExpanded ? 
-                      <ChevronDown className="w-5 h-5 text-gray-600" /> : 
-                      <ChevronRight className="w-5 h-5 text-gray-600" />
+                      <ChevronDown className="w-5 h-5 text-gray-600 group-hover:text-shop_dark_green transition-colors duration-300" /> : 
+                      <ChevronRight className="w-5 h-5 text-gray-600 group-hover:text-shop_dark_green transition-colors duration-300" />
                     }
                   </button>
                 )}
                 <Link 
                   href={`/categories/${category.slug}`}
-                  className="flex items-center gap-2 px-4 py-2 bg-shop_dark_green text-white rounded-lg hover:bg-shop_light_green transition-all duration-200 hover:scale-105 hover:shadow-md"
+                  className="flex items-center gap-2 px-4 py-2 bg-shop_dark_green text-white rounded-lg hover:bg-shop_light_green transition-all duration-300 hover:scale-105 hover:shadow-md"
                 >
                   Browse
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                 </Link>
               </div>
             </div>
@@ -164,9 +164,9 @@ export default function CategoriesPage() {
             <div className="border-t border-gray-100 bg-gray-50/50 p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {category.subcategories?.map(sub => (
-                  <div key={sub.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-shop_light_green transition-all duration-200 hover:shadow-sm">
+                  <div key={sub.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-shop_dark_green transition-all duration-300 hover:shadow-md hover:bg-gradient-to-br hover:from-shop_light_green/5 hover:to-shop_dark_green/5 group cursor-pointer">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-shop_light_green/20 rounded-lg flex items-center justify-center">
+                      <div className="w-8 h-8 bg-shop_light_green/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         {sub.icon ? (
                           <img 
                             src={sub.icon} 
@@ -180,18 +180,18 @@ export default function CategoriesPage() {
                       <div>
                         <Link 
                           href={`/categories/${sub.slug}`}
-                          className="text-sm font-semibold text-gray-900 hover:text-shop_dark_green transition-colors duration-200"
+                          className="text-sm font-semibold text-gray-900 hover:text-shop_dark_green transition-all duration-300 group-hover:scale-105"
                         >
                           {sub.title}
                         </Link>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500 mt-1 group-hover:text-shop_dark_green transition-colors duration-300">
                           {sub.count || 0} products
                         </p>
                       </div>
                     </div>
                     <Link 
                       href={`/categories/${sub.slug}`}
-                      className="text-shop_dark_green hover:text-shop_light_green transition-colors duration-200"
+                      className="text-shop_dark_green hover:text-shop_light_green transition-colors duration-300 group-hover:scale-110"
                     >
                       <ArrowRight className="w-4 h-4" />
                     </Link>
@@ -301,22 +301,6 @@ export default function CategoriesPage() {
               <p className="text-gray-500">No categories found matching "{searchTerm}"</p>
             </div>
           )}
-        </div>
-
-        {/* Expand/Collapse All */}
-        <div className="mt-8 flex gap-4 justify-center">
-          <button
-            onClick={() => setExpandedCategories(new Set(categories.map(c => c.id)))}
-            className="px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:border-shop_dark_green hover:text-shop_dark_green transition-all duration-200 hover:shadow-md font-medium"
-          >
-            Expand All Categories
-          </button>
-          <button
-            onClick={() => setExpandedCategories(new Set())}
-            className="px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:border-shop_dark_green hover:text-shop_dark_green transition-all duration-200 hover:shadow-md font-medium"
-          >
-            Collapse All Categories
-          </button>
         </div>
       </div>
     </div>

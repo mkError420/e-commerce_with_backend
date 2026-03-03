@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { 
   Star, 
@@ -168,12 +169,34 @@ const DealDetailPage = () => {
                 </div>
               )}
 
-              <div className='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
-                <div className='text-gray-400 text-center'>
-                  <div className='w-32 h-32 bg-gray-300 rounded-lg mx-auto mb-4'></div>
-                  <p className='text-sm'>Deal Image</p>
+              {deal?.image && deal.image !== '/api/placeholder/400/300' ? (
+                <Image
+                  src={deal.image.startsWith('http') ? deal.image : `/images/${deal.image}`}
+                  alt={deal.title}
+                  fill
+                  className='object-cover'
+                  sizes='(max-width: 1024px) 100vw, 50vw'
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    const sampleImages = [
+                      '/images/products/product_1.png',
+                      '/images/products/product_2.jpg',
+                      '/images/products/product_3.png',
+                      '/images/products/product_4.png',
+                      '/images/products/product_5.png'
+                    ];
+                    const randomImage = sampleImages[Math.floor(Math.random() * sampleImages.length)];
+                    target.src = randomImage;
+                  }}
+                />
+              ) : (
+                <div className='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
+                  <div className='text-gray-400 text-center'>
+                    <div className='w-32 h-32 bg-gray-300 rounded-lg mx-auto mb-4'></div>
+                    <p className='text-sm'>No Image Available</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Discount Overlay */}
               <div className='absolute top-4 right-4 bg-red-600 text-white rounded-lg px-3 py-2 text-center'>

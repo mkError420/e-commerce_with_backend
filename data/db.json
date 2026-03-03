@@ -338,16 +338,16 @@
     {
       "id": "1",
       "title": "Lightning Deal: Smart Watch Pro",
-      "originalPrice": 349.99,
-      "dealPrice": 199.99,
+      "originalPrice": 450.99,
+      "dealPrice": 299.99,
       "discount": 43,
-      "image": "/api/placeholder/400/300",
+      "image": "https://cdn-img.oraimo.com/fit-in/600x600/NG/product/2024/09/27/OSW-811H-black.png",
       "category": "Electronics",
       "dealType": "lightning",
-      "endTime": "2026-12-31T23:59:59",
+      "endTime": "2026-12-31T05:59",
       "stock": 8,
       "sold": 42,
-      "rating": 4.8,
+      "rating": 3.7,
       "reviews": 89,
       "description": "Advanced fitness tracking smartwatch",
       "features": [
@@ -360,13 +360,13 @@
     {
       "id": "2",
       "title": "Daily Deal: Organic Skincare Set",
-      "originalPrice": 119.99,
+      "originalPrice": 312.99,
       "dealPrice": 59.99,
       "discount": 50,
       "image": "/api/placeholder/400/300",
       "category": "Beauty",
-      "dealType": "daily",
-      "endTime": "2026-12-31T23:59:59",
+      "dealType": "lightning",
+      "endTime": "2026-12-30T23:59",
       "stock": 25,
       "sold": 75,
       "rating": 4.9,
@@ -375,6 +375,28 @@
       "features": [
         "Organic",
         "Cruelty Free"
+      ],
+      "freeShipping": true
+    },
+    {
+      "id": "mma7ka1k404fy5u2iom",
+      "title": "Samsung s20 ultra",
+      "originalPrice": 85000,
+      "dealPrice": 56990.99,
+      "discount": 33,
+      "image": "https://images.squarespace-cdn.com/content/v1/5864d96703596e675552b72c/1603059484317-HYZBU2YGP4RGOOEW66G4/Samsung_-Galaxy-S20-Ultra-Back.jpg",
+      "category": "Electronics",
+      "dealType": "lightning",
+      "endTime": "2026-03-05T09:11",
+      "stock": 10,
+      "sold": 0,
+      "rating": 4.5,
+      "reviews": 25,
+      "description": "If you'd like, tell me your brand vibe (luxury, budget, Gen Z, tech, etc.) and I can tailor names specifically forIf you'd like, tell me your brand vibe (luxury, budget, Gen Z, tech, etc.) and I can tailor names specifically for",
+      "features": [
+        "Mobile",
+        "deal",
+        "electronic"
       ],
       "freeShipping": true
     }

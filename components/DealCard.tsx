@@ -97,17 +97,18 @@ const DealCard = ({ deal, currentTime }: DealCardProps) => {
 
   return (
     <div className={`
-      group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border-2
-      ${isUrgent ? 'border-red-400 animate-pulse shadow-red-200/50' : 'border-gray-100'}
-      transform hover:-translate-y-1
+      group bg-white rounded-xl shadow hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100
+      ${isUrgent ? 'border-red-400 shadow-red-100/50' : 'border-gray-100'}
+      hover:border-shop_dark_green hover:bg-gradient-to-br hover:from-shop_light_green/5 hover:to-shop_dark_green/5 cursor-pointer
+      h-full flex flex-col
     `}>
       {/* Header with Deal Type Badge */}
       <div className='relative'>
         {/* Deal Type Badge */}
-        <div className='absolute top-4 left-4 z-10'>
+        <div className='absolute top-3 left-3 z-10'>
           <span className={`
-            ${dealBadge.color} text-white px-3 py-1.5 rounded-full text-xs font-bold
-            flex items-center gap-1 shadow-lg backdrop-blur-sm
+            ${dealBadge.color} text-white px-2 py-1 rounded-full text-xs font-bold
+            flex items-center gap-1 shadow-sm
           `}>
             <span>{dealBadge.icon}</span>
             {dealBadge.text}
@@ -116,8 +117,8 @@ const DealCard = ({ deal, currentTime }: DealCardProps) => {
 
         {/* Urgency Badge */}
         {isUrgent && (
-          <div className='absolute top-4 right-4 z-10'>
-            <span className='bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold animate-pulse shadow-lg flex items-center gap-1'>
+          <div className='absolute top-3 right-3 z-10'>
+            <span className='bg-gradient-to-r from-red-500 to-red-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-sm flex items-center gap-1'>
               <Bolt className='w-3 h-3' />
               Ending Soon!
             </span>
@@ -125,26 +126,76 @@ const DealCard = ({ deal, currentTime }: DealCardProps) => {
         )}
 
         {/* Product Image */}
-        <div className='relative overflow-hidden h-44 sm:h-52 bg-gradient-to-br from-gray-50 to-gray-100'>
-          <div className='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
-            <div className='text-gray-400 text-center'>
-              <div className='w-20 h-20 bg-gray-300 rounded-xl mx-auto mb-3 shadow-inner'></div>
-              <p className='text-sm font-medium'>Deal Image</p>
-            </div>
-          </div>
+        <div className='relative overflow-hidden h-40 bg-gradient-to-br from-gray-50 to-gray-100'>
+          {deal.image && deal.image !== '/api/placeholder/400/300' ? (
+            <Image
+              src={deal.image.startsWith('http') ? deal.image : `/images/${deal.image}`}
+              alt={deal.title}
+              fill
+              className='object-cover'
+              sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+              onError={(e) => {
+                // Fallback to sample product image if image fails to load
+                const target = e.target as HTMLImageElement;
+                const sampleImages = [
+                  '/images/products/product_1.png',
+                  '/images/products/product_2.jpg',
+                  '/images/products/product_3.png',
+                  '/images/products/product_4.png',
+                  '/images/products/product_5.png'
+                ];
+                const randomImage = sampleImages[Math.floor(Math.random() * sampleImages.length)];
+                target.src = randomImage;
+              }}
+              onLoadingComplete={(result) => {
+                // If Next.js Image fails to load, use regular img as fallback
+                if (!result.naturalWidth || result.naturalWidth === 0) {
+                  const img = document.createElement('img');
+                  img.src = result.src;
+                  img.alt = deal.title;
+                  img.className = 'w-full h-full object-cover';
+                  img.onerror = () => {
+                    // Final fallback to a working image
+                    img.src = '/images/products/product_1.png';
+                  };
+                  const parent = result.currentSrc ? document.querySelector(`img[src="${result.currentSrc}"]`)?.parentElement : null;
+                  if (parent) {
+                    parent.replaceChild(img, parent.querySelector('img')!);
+                  }
+                }
+              }}
+            />
+          ) : (
+            // Use sample product image as default
+            <img
+              src="/images/products/product_1.png"
+              alt={deal.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                const fallbackImages = [
+                  '/images/products/product_2.jpg',
+                  '/images/products/product_3.png',
+                  '/images/products/product_4.png',
+                  '/images/products/product_5.png'
+                ];
+                target.src = fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+              }}
+            />
+          )}
 
           {/* Discount Overlay */}
-          <div className='absolute top-4 right-4 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl px-3 py-2 text-center shadow-xl transform hover:scale-105 transition-transform duration-300'>
-            <div className='text-2xl font-bold'>-{deal.discount}%</div>
+          <div className='absolute top-3 right-3 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-lg px-2 py-1 text-center shadow-sm transform hover:scale-105 transition-transform duration-300'>
+            <div className='text-lg font-bold'>-{deal.discount}%</div>
             <div className='text-xs font-medium'>OFF</div>
           </div>
         </div>
       </div>
 
-      <div className='p-5 sm:p-6 bg-gradient-to-b from-white to-gray-50/30'>
+      <div className='p-4 flex-1 flex flex-col'>
         {/* Title and Category */}
-        <div className='mb-4'>
-          <div className='flex items-center justify-between mb-3'>
+        <div className='mb-3'>
+          <div className='flex items-center justify-between mb-2'>
             <span className='text-xs text-red-600 font-bold uppercase tracking-wider bg-red-50 px-2 py-1 rounded-full'>
               {deal.category}
             </span>
@@ -153,22 +204,22 @@ const DealCard = ({ deal, currentTime }: DealCardProps) => {
               <span className='font-medium'>{deal.rating}</span>
             </div>
           </div>
-          <h3 className='text-base sm:text-lg font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-red-600 transition-colors duration-300'>
-            <Link href={`/deals/${deal.id}`} className='hover:text-red-600'>
+          <h3 className='text-sm font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-shop_dark_green transition-colors duration-300'>
+            <Link href={`/deals/${deal.id}`} className='hover:text-shop_dark_green'>
               {deal.title}
             </Link>
           </h3>
-          <p className='text-gray-600 text-xs sm:text-sm mb-4 line-clamp-2 leading-relaxed'>
+          <p className='text-gray-600 text-xs mb-3 line-clamp-2 leading-relaxed'>
             {deal.description}
           </p>
         </div>
 
         {/* Features */}
-        <div className='flex flex-wrap gap-1.5 sm:gap-2 mb-4'>
-          {deal.features.slice(0, 3).map((feature, index) => (
+        <div className='flex flex-wrap gap-1 mb-3'>
+          {deal.features.slice(0, 2).map((feature, index) => (
             <span
               key={index}
-              className='px-2 sm:px-3 py-1 bg-gradient-to-r from-red-50 to-orange-50 text-red-600 rounded-lg text-xs font-medium border border-red-200'
+              className='px-2 py-1 bg-gradient-to-r from-red-50 to-orange-50 text-red-600 rounded text-xs font-medium border border-red-200'
             >
               {feature}
             </span>
@@ -176,20 +227,20 @@ const DealCard = ({ deal, currentTime }: DealCardProps) => {
         </div>
 
         {/* Stock Progress */}
-        <div className='mb-4'>
-          <div className='flex items-center justify-between text-sm mb-2'>
+        <div className='mb-3'>
+          <div className='flex items-center justify-between text-xs mb-1'>
             <span className='text-gray-700 font-medium flex items-center gap-1'>
-              <Package className='w-4 h-4 text-gray-500' />
-              Stock Progress
+              <Package className='w-3 h-3 text-gray-500' />
+              Stock
             </span>
             <span className={`
-              font-bold text-sm px-2 py-1 rounded-full
+              font-bold text-xs px-2 py-1 rounded-full
               ${stockPercentage > 80 ? 'bg-red-100 text-red-600' : stockPercentage > 50 ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}
             `}>
               {deal.stock} left
             </span>
           </div>
-          <div className='w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner'>
+          <div className='w-full bg-gray-200 rounded-full h-2 overflow-hidden shadow-inner'>
             <div
               className={`
                 h-full transition-all duration-500 rounded-full
@@ -198,7 +249,7 @@ const DealCard = ({ deal, currentTime }: DealCardProps) => {
               style={{ width: `${stockPercentage}%` }}
             ></div>
           </div>
-          <div className='text-xs text-gray-500 mt-2 flex items-center justify-between'>
+          <div className='text-xs text-gray-500 mt-1 flex items-center justify-between'>
             <span>{deal.sold} sold</span>
             <span>{Math.round(stockPercentage)}% claimed</span>
           </div>
@@ -206,7 +257,7 @@ const DealCard = ({ deal, currentTime }: DealCardProps) => {
 
         {/* Countdown Timer */}
         <div className={`
-          flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 rounded-xl mb-4 gap-2 sm:gap-0
+          flex items-center justify-between p-2 rounded-lg mb-3
           ${timeLeft.expired 
             ? 'bg-gray-100 text-gray-600' 
             : isUrgent 
@@ -215,64 +266,56 @@ const DealCard = ({ deal, currentTime }: DealCardProps) => {
           }
         `}>
           <div className='flex items-center gap-2'>
-            <Clock className={`w-4 h-4 ${isUrgent ? 'text-red-600' : 'text-orange-600'}`} />
-            <span className='text-xs sm:text-sm font-bold'>
-              {timeLeft.expired ? 'Deal Ended' : `Ends in: ${timeLeft.text}`}
+            <Clock className={`w-3 h-3 ${isUrgent ? 'text-red-600' : 'text-orange-600'}`} />
+            <span className='text-xs font-bold'>
+              {timeLeft.expired ? 'Deal Ended' : timeLeft.text}
             </span>
           </div>
           {deal.freeShipping && (
             <div className='flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium'>
               <Truck className='w-3 h-3' />
-              Free Shipping
+              Free
             </div>
           )}
         </div>
 
         {/* Price and Actions */}
-        <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0'>
+        <div className='flex items-center justify-between gap-3 mt-auto'>
           <div className='flex-1'>
-            <div className='flex items-center gap-3 mb-2'>
-              <span className='text-2xl sm:text-3xl font-bold text-red-600 bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent'>
+            <div className='flex items-center gap-2 mb-1'>
+              <span className='text-xl font-bold text-red-600'>
                 ৳{deal.dealPrice}
               </span>
-              <span className='text-lg sm:text-xl text-gray-400 line-through'>
+              <span className='text-sm text-gray-400 line-through'>
                 ৳{deal.originalPrice}
               </span>
             </div>
-            <div className='text-xs sm:text-sm text-green-600 font-medium bg-green-50 px-2 py-1 rounded-lg inline-block'>
-              You save ৳{((deal.originalPrice - deal.dealPrice).toFixed(2))}
+            <div className='text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-lg inline-block'>
+              Save ৳{((deal.originalPrice - deal.dealPrice).toFixed(2))}
             </div>
           </div>
 
-          <button 
-            onClick={handleGetDeal}
-            disabled={isInCart(deal.id, 'deal')}
-            className={`w-full sm:w-auto lg:hidden xl:hidden px-4 sm:px-6 py-3 sm:py-4 rounded-xl font-bold hover:shadow-xl hoverEffect flex items-center justify-center gap-2 group/btn transition-all duration-500 text-sm sm:text-sm transform hover:scale-105 ${
-              isInCart(deal.id, 'deal')
-                ? 'bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed'
-                : 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg'
-            }`}
-          >
-            <ShoppingCart className='w-4 h-4 sm:w-5 sm:h-5 group-hover/btn:scale-110 transition-transform duration-300' />
-            {isInCart(deal.id, 'deal') ? 'In Cart' : 'Get Deal'}
-          </button>
-        </div>
-
-        {/* Additional Info */}
-        <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-gray-200 mt-4 gap-3 sm:gap-0'>
-          <div className='flex items-center gap-3 text-sm text-gray-600'>
-            <div className='flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg'>
-              <Package className='w-4 h-4 text-gray-500' />
-              <span className='font-medium'>{deal.reviews} reviews</span>
-            </div>
+          <div className='flex gap-2'>
+            <button 
+              onClick={handleGetDeal}
+              disabled={isInCart(deal.id, 'deal')}
+              className={`px-3 py-2 rounded-lg font-bold hover:shadow-md transition-all duration-300 text-xs flex items-center justify-center gap-1 group/btn transform hover:scale-105 ${
+                isInCart(deal.id, 'deal')
+                  ? 'bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed'
+                  : 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow'
+              }`}
+            >
+              <ShoppingCart className='w-3 h-3 group-hover/btn:scale-110 transition-transform duration-300' />
+              {isInCart(deal.id, 'deal') ? 'In Cart' : 'Get Deal'}
+            </button>
+            
+            <Link
+              href={`/deals/${deal.id}`}
+              className='text-shop_dark_green font-bold hover:text-shop_light_green transition-colors duration-300 text-xs flex items-center gap-1 bg-shop_light_green/20 px-2 py-2 rounded-lg hover:bg-shop_light_green/30'
+            >
+              <ArrowRight className='w-3 h-3' />
+            </Link>
           </div>
-          <Link
-            href={`/deals/${deal.id}`}
-            className='text-red-600 font-bold hover:text-red-700 transition-colors duration-300 text-xs sm:text-sm flex items-center gap-1 bg-red-50 px-3 py-2 rounded-lg hover:bg-red-100'
-          >
-            View Details 
-            <ArrowRight className='w-3 h-3' />
-          </Link>
         </div>
       </div>
     </div>
