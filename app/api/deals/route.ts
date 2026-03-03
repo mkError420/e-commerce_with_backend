@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     console.log('POST Request - Body:', body)
     
-    const { title, originalPrice, dealPrice, discount, image, category, dealType, endTime, stock, sold, rating, reviews, description, features, freeShipping } = body
+    const { title, originalPrice, dealPrice, discount, image, images, category, dealType, endTime, stock, sold, rating, reviews, description, features, freeShipping } = body
     if (!title || originalPrice == null || dealPrice == null) return apiError('Title, originalPrice and dealPrice required', 400)
     
     const db = await getDb()
@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
       dealPrice: Number(dealPrice),
       discount: discount ?? Math.round((1 - Number(dealPrice) / Number(originalPrice)) * 100),
       image: image && image !== '/api/placeholder/400/300' ? image : sampleImages[Math.floor(Math.random() * sampleImages.length)],
+      images: images || [], // Array of additional images for gallery
       category: category || 'General',
       dealType: dealType || 'daily',
       endTime: endTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -88,7 +89,7 @@ export async function PUT(req: NextRequest) {
     
     if (!id) return apiError('Deal ID required', 400)
     
-    const { title, originalPrice, dealPrice, discount, image, category, dealType, endTime, stock, sold, rating, reviews, description, features, freeShipping } = body
+    const { title, originalPrice, dealPrice, discount, image, images, category, dealType, endTime, stock, sold, rating, reviews, description, features, freeShipping } = body
     if (!title || originalPrice == null || dealPrice == null) return apiError('Title, originalPrice and dealPrice required', 400)
     
     const db = await getDb()
@@ -119,6 +120,7 @@ export async function PUT(req: NextRequest) {
       dealPrice: Number(dealPrice),
       discount: discount ?? Math.round((1 - Number(dealPrice) / Number(originalPrice)) * 100),
       image: image && image !== '/api/placeholder/400/300' ? image : sampleImages[Math.floor(Math.random() * sampleImages.length)],
+      images: images || db.deals[dealIndex].images || [], // Keep existing images if not provided
       category: category || 'General',
       dealType: dealType || 'daily',
       endTime: endTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),

@@ -129,7 +129,7 @@ const DealCard = ({ deal, currentTime }: DealCardProps) => {
         <div className='relative overflow-hidden h-40 bg-gradient-to-br from-gray-50 to-gray-100'>
           {deal.image && deal.image !== '/api/placeholder/400/300' ? (
             <Image
-              src={deal.image.startsWith('http') ? deal.image : `/images/${deal.image}`}
+              src={deal.image.startsWith('http') ? deal.image : (deal.image.startsWith('/images/') ? deal.image : `/images/${deal.image}`)}
               alt={deal.title}
               fill
               className='object-cover'

@@ -15,7 +15,8 @@ import {
   Minus,
   Plus,
   Check,
-  Clock
+  Clock,
+  X
 } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import { useSlideCart } from '@/contexts/SlideCartContext'
@@ -43,11 +44,18 @@ const DealDetailPage = () => {
   const [selectedImage, setSelectedImage] = useState(0)
   const [isAddedToCart, setIsAddedToCart] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+  const [lightboxImage, setLightboxImage] = useState('')
 
   useEffect(() => { const t = setInterval(() => setCurrentTime(new Date()), 1000); return () => clearInterval(t) }, [])
   useEffect(() => {
     fetch(`/api/deals/${id}`).then(r => r.json()).then(d => {
-      if (d?.data) setDeal(d.data)
+      if (d?.data) {
+        console.log('Deal data loaded:', d.data)
+        console.log('Deal image:', d.data.image)
+        console.log('Deal images:', d.data.images)
+        setDeal(d.data)
+      }
       else setDeal(fallbackDeals.find((d: any) => String(d.id) === id))
     }).catch(() => setDeal(fallbackDeals.find((d: any) => String(d.id) === id))).finally(() => setLoading(false))
   }, [id])
@@ -169,33 +177,92 @@ const DealDetailPage = () => {
                 </div>
               )}
 
-              {deal?.image && deal.image !== '/api/placeholder/400/300' ? (
-                <Image
-                  src={deal.image.startsWith('http') ? deal.image : `/images/${deal.image}`}
-                  alt={deal.title}
-                  fill
-                  className='object-cover'
-                  sizes='(max-width: 1024px) 100vw, 50vw'
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    const sampleImages = [
-                      '/images/products/product_1.png',
-                      '/images/products/product_2.jpg',
-                      '/images/products/product_3.png',
-                      '/images/products/product_4.png',
-                      '/images/products/product_5.png'
-                    ];
-                    const randomImage = sampleImages[Math.floor(Math.random() * sampleImages.length)];
-                    target.src = randomImage;
-                  }}
-                />
-              ) : (
-                <div className='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
-                  <div className='text-gray-400 text-center'>
-                    <div className='w-32 h-32 bg-gray-300 rounded-lg mx-auto mb-4'></div>
-                    <p className='text-sm'>No Image Available</p>
+              {selectedImage === 0 ? (
+                // Main image
+                deal?.image && deal.image !== '/api/placeholder/400/300' ? (
+                  <div 
+                    className='relative w-full h-full cursor-pointer group'
+                    onClick={() => {
+                      const imageSrc = deal.image.startsWith('http') ? deal.image : (deal.image.startsWith('/images/') ? deal.image : `/images/${deal.image}`)
+                      console.log('Main image clicked, src:', imageSrc)
+                      setLightboxImage(imageSrc)
+                      setIsLightboxOpen(true)
+                    }}
+                  >
+                    <Image
+                      src={deal.image.startsWith('http') ? deal.image : (deal.image.startsWith('/images/') ? deal.image : `/images/${deal.image}`)}
+                      alt={deal.title}
+                      fill
+                      className='object-cover transition-transform duration-300 group-hover:scale-110'
+                      sizes='(max-width: 1024px) 100vw, 50vw'
+                      onLoad={() => console.log('Main image loaded successfully')}
+                      onError={(e) => {
+                        console.log('Main image failed to load, using fallback')
+                        const target = e.target as HTMLImageElement;
+                        const fallbackImages = [
+                          '/images/products/product_1.png',
+                          '/images/products/product_2.jpg',
+                          '/images/products/product_3.png',
+                          '/images/products/product_4.png',
+                          '/images/products/product_5.png'
+                        ];
+                        const randomFallback = fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+                        console.log('Setting fallback to:', randomFallback)
+                        target.src = randomFallback;
+                      }}
+                    />
                   </div>
-                </div>
+                ) : (
+                  <div className='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
+                    <div className='text-gray-400 text-center'>
+                      <div className='w-32 h-32 bg-gray-300 rounded-lg mx-auto mb-4'></div>
+                      <p className='text-sm'>No Image Available</p>
+                    </div>
+                  </div>
+                )
+              ) : (
+                // Additional images from gallery
+                deal?.images?.[selectedImage - 1] && deal.images[selectedImage - 1] !== '/api/placeholder/400/300' ? (
+                  <div 
+                    className='relative w-full h-full cursor-pointer group'
+                    onClick={() => {
+                      const imageSrc = deal.images[selectedImage - 1].startsWith('http') ? deal.images[selectedImage - 1] : (deal.images[selectedImage - 1].startsWith('/images/') ? deal.images[selectedImage - 1] : `/images/${deal.images[selectedImage - 1]}`)
+                      console.log('Gallery image clicked, index:', selectedImage - 1, 'src:', imageSrc)
+                      setLightboxImage(imageSrc)
+                      setIsLightboxOpen(true)
+                    }}
+                  >
+                    <Image
+                      src={deal.images[selectedImage - 1].startsWith('http') ? deal.images[selectedImage - 1] : (deal.images[selectedImage - 1].startsWith('/images/') ? deal.images[selectedImage - 1] : `/images/${deal.images[selectedImage - 1]}`)}
+                      alt={`${deal.title} - Image ${selectedImage}`}
+                      fill
+                      className='object-cover transition-transform duration-300 group-hover:scale-110'
+                      sizes='(max-width: 1024px) 100vw, 50vw'
+                      onLoad={() => console.log('Gallery image loaded successfully, index:', selectedImage - 1)}
+                      onError={(e) => {
+                        console.log('Gallery image failed to load, index:', selectedImage - 1, 'using fallback')
+                        const target = e.target as HTMLImageElement;
+                        const fallbackImages = [
+                          '/images/products/product_1.png',
+                          '/images/products/product_2.jpg',
+                          '/images/products/product_3.png',
+                          '/images/products/product_4.png',
+                          '/images/products/product_5.png'
+                        ];
+                        const randomFallback = fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+                        console.log('Setting gallery fallback to:', randomFallback)
+                        target.src = randomFallback;
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
+                    <div className='text-gray-400 text-center'>
+                      <div className='w-32 h-32 bg-gray-300 rounded-lg mx-auto mb-4'></div>
+                      <p className='text-sm'>Image {selectedImage} Not Available</p>
+                    </div>
+                  </div>
+                )
               )}
 
               {/* Discount Overlay */}
@@ -206,19 +273,85 @@ const DealDetailPage = () => {
             </div>
 
             {/* Thumbnail Images */}
-            <div className='grid grid-cols-4 gap-2'>
-              {[...Array(4)].map((_, index) => (
+            <div className='grid grid-cols-5 gap-2'>
+              {/* Main image thumbnail */}
+              <button
+                onClick={() => {
+                    console.log('Main thumbnail clicked')
+                    setSelectedImage(0)
+                  }}
+                className={`relative overflow-hidden rounded-lg bg-gray-100 aspect-square border-2 transition-all duration-200 ${
+                  selectedImage === 0 ? 'border-red-600' : 'border-gray-200'
+                }`}
+              >
+                {deal?.image && deal.image !== '/api/placeholder/400/300' ? (
+                  <img
+                    src={deal.image.startsWith('http') ? deal.image : (deal.image.startsWith('/images/') ? deal.image : `/images/${deal.image}`)}
+                    alt={deal.title}
+                    className='w-full h-full object-cover'
+                    onLoad={() => console.log('Main thumbnail loaded:', deal.image)}
+                    onError={(e) => {
+                      console.log('Main thumbnail failed to load:', deal.image)
+                    }}
+                  />
+                ) : (
+                  <div className='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
+                    <div className='w-12 h-12 bg-gray-300 rounded'></div>
+                  </div>
+                )}
+              </button>
+              
+              {/* Additional images thumbnails */}
+              {deal?.images?.slice(0, 4).map((image: string, index: number) => (
                 <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
+                  key={index + 1}
+                  onClick={() => {
+                    console.log('Gallery thumbnail clicked:', index + 1, 'image:', image)
+                    setSelectedImage(index + 1)
+                  }}
                   className={`relative overflow-hidden rounded-lg bg-gray-100 aspect-square border-2 transition-all duration-200 ${
-                    selectedImage === index ? 'border-red-600' : 'border-gray-200'
+                    selectedImage === index + 1 ? 'border-red-600' : 'border-gray-200'
                   }`}
+                >
+                  {image && image !== '/api/placeholder/400/300' ? (
+                    <img
+                      src={image.startsWith('http') ? image : (image.startsWith('/images/') ? image : `/images/${image}`)}
+                      alt={`${deal.title} - Image ${index + 1}`}
+                      className='w-full h-full object-cover'
+                      onLoad={() => console.log('Gallery thumbnail loaded:', index + 1, image)}
+                      onError={(e) => {
+                        console.log('Gallery thumbnail failed to load:', index + 1, image)
+                        const target = e.target as HTMLImageElement;
+                        const sampleImages = [
+                          '/images/products/product_1.png',
+                          '/images/products/product_2.jpg',
+                          '/images/products/product_3.png',
+                          '/images/products/product_4.png',
+                          '/images/products/product_5.png'
+                        ];
+                        const randomImage = sampleImages[Math.floor(Math.random() * sampleImages.length)];
+                        console.log('Setting gallery thumbnail fallback to:', randomImage)
+                        target.src = randomImage;
+                      }}
+                    />
+                  ) : (
+                    <div className='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
+                      <div className='w-12 h-12 bg-gray-300 rounded'></div>
+                    </div>
+                  )}
+                </button>
+              ))}
+              
+              {/* Empty thumbnails if less than 4 additional images */}
+              {[...Array(Math.max(0, 4 - (deal?.images?.length || 0)))].map((_, index) => (
+                <div
+                  key={`empty-${index}`}
+                  className='relative overflow-hidden rounded-lg bg-gray-100 aspect-square border-2 border-gray-200'
                 >
                   <div className='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
                     <div className='w-12 h-12 bg-gray-300 rounded'></div>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </div>
@@ -421,6 +554,31 @@ const DealDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Lightbox Modal */}
+      {isLightboxOpen && (
+        <div 
+          className='fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4'
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <div className='relative max-w-4xl max-h-full w-full h-full flex items-center justify-center'>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsLightboxOpen(false)
+              }}
+              className='absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10'
+            >
+              <X className='w-8 h-8' />
+            </button>
+            <img
+              src={lightboxImage}
+              alt='Enlarged view'
+              className='max-w-full max-h-full object-contain'
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

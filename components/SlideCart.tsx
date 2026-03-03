@@ -44,6 +44,7 @@ const SlideCart: React.FC<SlideCartProps> = ({ isOpen, onClose }) => {
 
           {/* Cart Items */}
           <div className='flex-1 overflow-y-auto p-6'>
+            <div className='text-xs text-gray-500 mb-2'>Cart items count: {cartItems.length}</div>
             {cartItems.length === 0 ? (
               <div className='text-center py-12'>
                 <div className='w-24 h-24 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center'>
@@ -54,15 +55,21 @@ const SlideCart: React.FC<SlideCartProps> = ({ isOpen, onClose }) => {
               </div>
             ) : (
               <div className='space-y-4'>
-                {cartItems.map((item) => {
-                  const currentItem = item.itemType === 'product' ? item.product : item.deal
-                  const itemId = item.itemType === 'product' ? item.product?.id : item.deal?.id
+                {cartItems.map((item, index) => {
+                  console.log(`Rendering cart item ${index}:`, item)
+                  
+                  // Get the first image from gallery or main image
+                  const imageSrc = item.itemType === 'product' 
+                    ? (item.product?.image || '/api/placeholder/400/300')
+                    : (item.deal?.images?.[0] || item.deal?.image || '/api/placeholder/400/300')
+                  
+                  console.log('Using image src:', imageSrc)
                   
                   return (
-                  <div key={`${item.itemType}-${itemId}`} className='flex gap-4 p-4 bg-gray-50 rounded-lg'>
+                  <div key={`${item.itemType}-${item.deal?.id || item.product?.id}-${index}`} className='flex gap-4 p-4 bg-gray-50 rounded-lg'>
                     {/* Product Image */}
-                    <div className='w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center'>
-                      <div className='w-6 h-6 bg-gray-400 rounded'></div>
+                    <div className='w-16 h-16 bg-green-500 rounded-lg flex-shrink-0 relative overflow-hidden flex items-center justify-center'>
+                      <span className='text-white text-xs font-bold'>IMG</span>
                     </div>
                     
                     {/* Product Details */}
@@ -72,54 +79,38 @@ const SlideCart: React.FC<SlideCartProps> = ({ isOpen, onClose }) => {
                           {item.itemType === 'product' ? item.product?.name : item.deal?.title}
                         </h3>
                         <button
-                          onClick={() => removeFromCart(itemId!, item.itemType)}
+                          onClick={() => removeFromCart((item.deal?.id || item.product?.id)!, item.itemType)}
                           className='text-red-500 hover:text-red-700 p-1'
                         >
                           <X className='w-4 h-4' />
                         </button>
                       </div>
                       
-                      <p className='text-xs text-gray-600 mb-2'>
-                        {item.itemType === 'product' ? item.product?.category : item.deal?.category}
-                        {item.itemType === 'deal' && (
-                          <span className='ml-2 px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium'>
-                            {item.deal?.discount}% OFF
-                          </span>
-                        )}
-                      </p>
-                      
                       {/* Quantity Controls */}
                       <div className='flex items-center justify-between'>
                         <div className='flex items-center gap-2'>
                           <button
-                            onClick={() => updateQuantity(itemId!, item.quantity - 1, item.itemType)}
+                            onClick={() => updateQuantity((item.deal?.id || item.product?.id)!, item.quantity - 1, item.itemType)}
                             className='w-6 h-6 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center justify-center'
                           >
                             <Minus className='w-3 h-3' />
                           </button>
-                          <span className='w-8 text-center text-sm font-semibold'>{item.quantity}</span>
+                          <span className='text-sm font-medium text-gray-900'>{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(itemId!, item.quantity + 1, item.itemType)}
+                            onClick={() => updateQuantity((item.deal?.id || item.product?.id)!, item.quantity + 1, item.itemType)}
                             className='w-6 h-6 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center justify-center'
                           >
                             <Plus className='w-3 h-3' />
                           </button>
                         </div>
-                        
-                        {/* Price */}
-                        <div className='text-right'>
-                          <span className='text-sm font-bold text-shop_dark_green'>
-                            ${(((item.itemType === 'product' ? item.product?.price : item.deal?.dealPrice) || 0) * item.quantity).toFixed(2)}
-                          </span>
-                          <div className='text-xs text-gray-500'>
-                            ${item.itemType === 'product' ? item.product?.price : item.deal?.dealPrice} each
-                          </div>
-                        </div>
+                        <span className='text-sm font-semibold text-gray-900'>
+                          ${((item.itemType === 'product' ? item.product?.price : item.deal?.dealPrice) * item.quantity).toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   </div>
-                  )
-                })}
+                )})
+              }
               </div>
             )}
           </div>

@@ -71,8 +71,21 @@ const GlobalSlideCart = () => {
                 return (
                 <div key={`${item.itemType}-${itemId}`} className='flex gap-4 p-4 bg-gray-50 rounded-lg'>
                   {/* Product Image */}
-                  <div className='w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center'>
-                    <div className='w-6 h-6 bg-gray-400 rounded'></div>
+                  <div className='w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 relative overflow-hidden'>
+                    {/* Use CSS background image */}
+                    <div 
+                      className='w-full h-full bg-cover bg-center'
+                      style={{
+                        backgroundImage: `url(${
+                          item.itemType === 'product' 
+                            ? (item.product?.image || '/api/placeholder/400/300')
+                            : (item.deal?.images?.[0] || item.deal?.image || '/api/placeholder/400/300')
+                        })`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundColor: '#f3f4f6'
+                      }}
+                    />
                   </div>
                   
                   {/* Product Details */}

@@ -23,17 +23,14 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-    ],
-    localPatterns: [
       {
-        pathname: '/images/**',
-        search: '**',
-      },
-      {
-        pathname: '/api/placeholder/**',
-        search: '**',
+        protocol: 'https',
+        hostname: 'cdn-img.oraimo.com',
+        port: '',
+        pathname: '/**',
       },
     ],
+    unoptimized: true,
   },
 };
 

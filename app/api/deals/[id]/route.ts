@@ -45,7 +45,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const body = await req.json()
     console.log('PUT [id] Route - Body:', body)
     
-    const { title, originalPrice, dealPrice, discount, image, category, dealType, endTime, stock, sold, rating, reviews, description, features, freeShipping } = body
+    const { title, originalPrice, dealPrice, discount, image, images, category, dealType, endTime, stock, sold, rating, reviews, description, features, freeShipping } = body
     if (!title || originalPrice == null || dealPrice == null) {
       console.log('PUT [id] Route - Validation failed: missing required fields')
       return apiError('Title, originalPrice and dealPrice required', 400)
@@ -70,6 +70,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       dealPrice: Number(dealPrice),
       discount: discount ?? Math.round((1 - Number(dealPrice) / Number(originalPrice)) * 100),
       image: image || '/api/placeholder/400/300',
+      images: images || db.deals[idx].images || [], // Keep existing images if not provided
       category: category || 'General',
       dealType: dealType || 'daily',
       endTime: endTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),

@@ -22,6 +22,7 @@ export default function NewProductPage() {
     price: '', 
     originalPrice: '', 
     image: '', 
+    images: ['', '', '', ''], // Array for 4 additional images
     mainCategory: '',
     category: '', 
     subcategory: '',
@@ -89,7 +90,8 @@ export default function NewProductPage() {
         ...form,
         price: parseFloat(form.price),
         originalPrice: form.originalPrice ? parseFloat(form.originalPrice) : undefined,
-        category: finalCategory
+        category: finalCategory,
+        images: form.images.filter(img => img.trim() !== '') // Filter out empty images
       })
       router.push('/dashboard/products')
     } finally { 
@@ -266,7 +268,7 @@ export default function NewProductPage() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Main Image URL</label>
           <input 
             value={form.image} 
             onChange={e => setForm({ ...form, image: e.target.value })} 
@@ -275,7 +277,7 @@ export default function NewProductPage() {
           />
           {form.image && (
             <div className="mt-3">
-              <p className="text-sm text-gray-600 mb-2">Image Preview:</p>
+              <p className="text-sm text-gray-600 mb-2">Main Image Preview:</p>
               <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-gray-50">
                 <img 
                   src={form.image} 
@@ -291,6 +293,45 @@ export default function NewProductPage() {
               </div>
             </div>
           )}
+        </div>
+        
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Additional Images (Gallery - Max 4)</label>
+          <div className="grid grid-cols-2 gap-4">
+            {form.images.map((img, index) => (
+              <div key={index}>
+                <label className="block text-xs text-gray-600 mb-1">Image {index + 1}</label>
+                <input
+                  value={img}
+                  onChange={e => {
+                    const newImages = [...form.images]
+                    newImages[index] = e.target.value
+                    setForm({ ...form, images: newImages })
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                  placeholder={`Additional image ${index + 1} URL`}
+                />
+                {img && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-600 mb-1">Preview:</p>
+                    <div className="relative w-20 h-20 border rounded overflow-hidden bg-gray-50">
+                      <img 
+                        src={img} 
+                        alt={`Gallery image ${index + 1}`} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = '';
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement?.classList.add('bg-gradient-to-br', 'from-gray-100', 'to-gray-200');
+                          e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center"><div class="text-gray-400 text-xs text-center"><div class="w-4 h-4 bg-gray-300 rounded mx-auto mb-1"></div><p class="text-xs">Invalid</p></div></div>';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>

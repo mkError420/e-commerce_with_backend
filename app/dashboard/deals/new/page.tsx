@@ -13,6 +13,7 @@ export default function NewDealPage() {
     originalPrice: '', 
     dealPrice: '', 
     image: '', 
+    images: ['', '', '', ''], // Array for 4 additional images
     category: 'Electronics', 
     dealType: 'daily', 
     endTime: '', 
@@ -58,16 +59,13 @@ export default function NewDealPage() {
     
     try {
       const dealData = {
-        title: form.title.trim(),
+        ...form,
         originalPrice: parseFloat(form.originalPrice),
         dealPrice: parseFloat(form.dealPrice),
-        stock: parseInt(form.stock) || 10,
-        rating: parseFloat(form.rating) || 4.5,
-        reviews: parseInt(form.reviews) || 0,
-        category: form.category.trim() || 'General',
-        dealType: form.dealType || 'daily',
-        image: form.image.trim() || '/api/placeholder/400/300',
-        description: form.description.trim() || '',
+        stock: parseInt(form.stock),
+        rating: parseFloat(form.rating),
+        reviews: parseInt(form.reviews),
+        images: form.images.filter(img => img.trim() !== ''), // Filter out empty images
         features: form.features ? form.features.split(',').map(f => f.trim()).filter(f => f) : [],
         endTime: form.endTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         freeShipping: form.freeShipping !== false
@@ -126,6 +124,27 @@ export default function NewDealPage() {
         </div>
         
         <div><label className="block text-sm font-medium mb-1">Image URL</label><input value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} className="w-full px-4 py-2 border rounded-lg" placeholder="/api/placeholder/400/300" /></div>
+        
+        <div className="mt-4">
+          <label className="block text-sm font-medium mb-2">Additional Images (Gallery - Max 4)</label>
+          <div className="grid grid-cols-2 gap-4">
+            {form.images.map((img, index) => (
+              <div key={index}>
+                <label className="block text-xs text-gray-600 mb-1">Image {index + 1}</label>
+                <input
+                  value={img}
+                  onChange={e => {
+                    const newImages = [...form.images]
+                    newImages[index] = e.target.value
+                    setForm({ ...form, images: newImages })
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                  placeholder={`Additional image ${index + 1} URL`}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
         
         <div><label className="block text-sm font-medium mb-1">Description</label><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} className="w-full px-4 py-2 border rounded-lg" placeholder="Enter deal description"></textarea></div>
         

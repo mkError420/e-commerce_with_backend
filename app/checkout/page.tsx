@@ -585,8 +585,21 @@ const CheckoutPage = () => {
                   
                   return (
                   <div key={`${item.itemType}-${itemId}`} className='flex items-center gap-3'>
-                    <div className='w-12 h-12 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center'>
-                      <div className='w-4 h-4 bg-gray-400 rounded'></div>
+                    <div className='w-12 h-12 bg-gray-200 rounded flex-shrink-0 relative overflow-hidden'>
+                      {/* Use CSS background image for product image */}
+                      <div 
+                        className='w-full h-full bg-cover bg-center'
+                        style={{
+                          backgroundImage: `url(${
+                            item.itemType === 'product' 
+                              ? (item.product?.image || '/api/placeholder/400/300')
+                              : (item.deal?.images?.[0] || item.deal?.image || '/api/placeholder/400/300')
+                          })`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          backgroundColor: '#f3f4f6'
+                        }}
+                      />
                     </div>
                     <div className='flex-1 min-w-0'>
                       <h4 className='text-sm font-medium text-gray-900 line-clamp-1'>

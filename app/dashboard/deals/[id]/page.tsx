@@ -41,7 +41,8 @@ export default function EditDealPage() {
           setForm({
             ...dealData,
             features: dealData.features ? dealData.features.join(', ') : '',
-            endTime: dealData.endTime ? new Date(dealData.endTime).toISOString().slice(0, 16) : ''
+            endTime: dealData.endTime ? new Date(dealData.endTime).toISOString().slice(0, 16) : '',
+            images: dealData.images || ['', '', '', ''] // Initialize images array
           })
           
           console.log('Form initialized successfully')
@@ -54,7 +55,8 @@ export default function EditDealPage() {
           setForm({
             ...dealData,
             features: dealData.features ? dealData.features.join(', ') : '',
-            endTime: dealData.endTime ? new Date(dealData.endTime).toISOString().slice(0, 16) : ''
+            endTime: dealData.endTime ? new Date(dealData.endTime).toISOString().slice(0, 16) : '',
+            images: dealData.images || ['', '', '', ''] // Initialize images array
           })
           
           console.log('Form initialized successfully')
@@ -93,6 +95,7 @@ export default function EditDealPage() {
         stock: parseInt(form.stock),
         rating: parseFloat(form.rating),
         reviews: parseInt(form.reviews),
+        images: form.images?.filter((img: string) => img.trim() !== '') || [], // Filter out empty images
         features: form.features ? form.features.split(',').map((f: string) => f.trim()).filter((f: string) => f) : [],
         endTime: form.endTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
       }
@@ -165,6 +168,27 @@ export default function EditDealPage() {
         </div>
         
         <div><label className="block text-sm font-medium mb-1">Image URL</label><input value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} className="w-full px-4 py-2 border rounded-lg" placeholder="/api/placeholder/400/300" /></div>
+        
+        <div className="mt-4">
+          <label className="block text-sm font-medium mb-2">Additional Images (Gallery - Max 4)</label>
+          <div className="grid grid-cols-2 gap-4">
+            {form.images?.map((img: string, index: number) => (
+              <div key={index}>
+                <label className="block text-xs text-gray-600 mb-1">Image {index + 1}</label>
+                <input
+                  value={img}
+                  onChange={e => {
+                    const newImages = [...form.images]
+                    newImages[index] = e.target.value
+                    setForm({ ...form, images: newImages })
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                  placeholder={`Additional image ${index + 1} URL`}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
         
         <div><label className="block text-sm font-medium mb-1">Description</label><textarea value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} className="w-full px-4 py-2 border rounded-lg" placeholder="Enter deal description"></textarea></div>
         

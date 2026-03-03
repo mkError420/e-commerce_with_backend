@@ -33,6 +33,7 @@ export interface Deal {
   dealPrice: number
   discount: number
   image: string
+  images: string[] // Array of additional images for gallery (max 4)
   category: string
   dealType: string
   endTime: string

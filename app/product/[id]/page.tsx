@@ -46,6 +46,29 @@ const ProductDetailPage = () => {
     if (imageUrl.startsWith('http')) return imageUrl
     return `${imageUrl}?v=${Date.now()}`
   }
+  // Create an array of all product images (main + gallery)
+  const getAllImages = () => {
+    if (!product) return []
+    
+    const images = [product.image] // Main image is always first
+    if (product.images && Array.isArray(product.images)) {
+      // Add non-empty gallery images
+      product.images.forEach((img: string) => {
+        if (img && img.trim() !== '') {
+          images.push(img)
+        }
+      })
+    }
+    // Fill remaining slots with main image if less than 4 total images
+    while (images.length < 4) {
+      images.push(product.image)
+    }
+    // Return only first 4 images
+    return images.slice(0, 4)
+  }
+
+  const allImages = getAllImages()
+
   const [reviews, setReviews] = useState([
     {
       id: 1,
@@ -267,11 +290,11 @@ const ProductDetailPage = () => {
   }
 
   const handlePreviousImage = () => {
-    setModalImageIndex((prev) => (prev === 0 ? 3 : prev - 1))
+    setModalImageIndex((prev) => (prev === 0 ? allImages.length - 1 : prev - 1))
   }
 
   const handleNextImage = () => {
-    setModalImageIndex((prev) => (prev === 3 ? 0 : prev + 1))
+    setModalImageIndex((prev) => (prev === allImages.length - 1 ? 0 : prev + 1))
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -331,16 +354,16 @@ const ProductDetailPage = () => {
               </div>
 
               <div className='w-full h-full relative'>
-                {product.image ? (
-                  product.image.startsWith('/api/placeholder/') ? (
+                {allImages[selectedImage] ? (
+                  allImages[selectedImage].startsWith('/api/placeholder/') ? (
                     <img 
-                      src={product.image} 
+                      src={allImages[selectedImage]} 
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />
-                  ) : product.image.startsWith('http') ? (
+                  ) : allImages[selectedImage].startsWith('http') ? (
                     <img 
-                      src={getImageUrl(product.image)} 
+                      src={getImageUrl(allImages[selectedImage])} 
                       alt={product.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -354,7 +377,7 @@ const ProductDetailPage = () => {
                     />
                   ) : (
                     <img 
-                      src={getImageUrl(product.image)} 
+                      src={getImageUrl(allImages[selectedImage])} 
                       alt={product.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -380,7 +403,7 @@ const ProductDetailPage = () => {
 
             {/* Thumbnail Images */}
             <div className='grid grid-cols-4 gap-2'>
-              {[...Array(4)].map((_, index) => (
+              {allImages.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
@@ -389,16 +412,16 @@ const ProductDetailPage = () => {
                   }`}
                 >
                   <div className='w-full h-full relative'>
-                    {product.image ? (
-                      product.image.startsWith('/api/placeholder/') ? (
+                    {image ? (
+                      image.startsWith('/api/placeholder/') ? (
                         <img 
-                          src={product.image} 
+                          src={image} 
                           alt={`${product.name} thumbnail ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
-                      ) : product.image.startsWith('http') ? (
+                      ) : image.startsWith('http') ? (
                         <img 
-                          src={getImageUrl(product.image)} 
+                          src={getImageUrl(image)} 
                           alt={`${product.name} thumbnail ${index + 1}`}
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -412,7 +435,7 @@ const ProductDetailPage = () => {
                         />
                       ) : (
                         <img 
-                          src={getImageUrl(product.image)} 
+                          src={getImageUrl(image)} 
                           alt={`${product.name} thumbnail ${index + 1}`}
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -967,16 +990,16 @@ const ProductDetailPage = () => {
               {/* Main Image */}
               <div className='relative w-full h-full flex items-center justify-center'>
                 <div className='w-full h-full max-w-4xl max-h-[80vh] bg-white rounded-2xl shadow-2xl overflow-hidden'>
-                  {product.image ? (
-                    product.image.startsWith('/api/placeholder/') ? (
+                  {allImages[modalImageIndex] ? (
+                    allImages[modalImageIndex].startsWith('/api/placeholder/') ? (
                       <img 
-                        src={product.image} 
+                        src={allImages[modalImageIndex]} 
                         alt={product.name}
                         className="w-full h-full object-contain"
                       />
-                    ) : product.image.startsWith('http') ? (
+                    ) : allImages[modalImageIndex].startsWith('http') ? (
                       <img 
-                        src={getImageUrl(product.image)} 
+                        src={getImageUrl(allImages[modalImageIndex])} 
                         alt={product.name}
                         className="w-full h-full object-contain"
                         onError={(e) => {
@@ -990,7 +1013,7 @@ const ProductDetailPage = () => {
                       />
                     ) : (
                       <img 
-                        src={getImageUrl(product.image)} 
+                        src={getImageUrl(allImages[modalImageIndex])} 
                         alt={product.name}
                         className="w-full h-full object-contain"
                         onError={(e) => {
@@ -1017,7 +1040,7 @@ const ProductDetailPage = () => {
 
               {/* Image Indicators */}
               <div className='absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2'>
-                {[...Array(4)].map((_, index) => (
+                {allImages.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setModalImageIndex(index)}

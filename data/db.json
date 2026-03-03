@@ -12,7 +12,13 @@
       "category": "Smartphones & Accessories",
       "description": "Premium wireless headphones with noise cancellation",
       "mainCategory": "Electronics",
-      "subcategory": "Smartphones & Accessories"
+      "subcategory": "Smartphones & Accessories",
+      "images": [
+        "https://t4.ftcdn.net/jpg/04/27/66/15/360_F_427661547_ceXaauKleQxdS060pd2AmSHnyaNYWpRy.jpg",
+        "https://adminapi.applegadgetsbd.com/storage/media/large/1964-98939.jpg",
+        "https://5.imimg.com/data5/SELLER/Default/2025/7/529134025/NC/RE/NP/68265926/jbl-wireless-headphones.jpg",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKib9QxXuGL8TNBlQBHxbbfWsbzhKMmDwoIw&s"
+      ]
     },
     {
       "id": "2",
@@ -342,9 +348,15 @@
       "dealPrice": 299.99,
       "discount": 43,
       "image": "https://cdn-img.oraimo.com/fit-in/600x600/NG/product/2024/09/27/OSW-811H-black.png",
+      "images": [
+        "https://cdn-img.oraimo.com/fit-in/600x600/NG/product/2024/11/15/OSW-811H-1080-12.jpg",
+        "https://cdn-img.oraimo.com/fit-in/600x600/NG/product/2024/11/15/OSW-811H-1080-11.jpg",
+        "https://cdn-img.oraimo.com/fit-in/600x600/NG/product/2024/11/15/OSW-811H-1080-13.jpg",
+        "https://cdn-img.oraimo.com/fit-in/600x600/NG/product/2024/11/15/OSW-811H-1080-1.jpg"
+      ],
       "category": "Electronics",
       "dealType": "lightning",
-      "endTime": "2026-12-31T05:59",
+      "endTime": "2026-12-30T17:59",
       "stock": 8,
       "sold": 42,
       "rating": 3.7,
@@ -363,10 +375,16 @@
       "originalPrice": 312.99,
       "dealPrice": 59.99,
       "discount": 50,
-      "image": "/api/placeholder/400/300",
+      "image": "/images/products/product_3.png",
+      "images": [
+        "/images/products/product_1.png",
+        "/images/products/product_2.jpg",
+        "/images/products/product_3.png",
+        "/images/products/product_4.png"
+      ],
       "category": "Beauty",
       "dealType": "lightning",
-      "endTime": "2026-12-30T23:59",
+      "endTime": "2026-12-30T11:59",
       "stock": 25,
       "sold": 75,
       "rating": 4.9,
@@ -384,10 +402,16 @@
       "originalPrice": 85000,
       "dealPrice": 56990.99,
       "discount": 33,
-      "image": "https://images.squarespace-cdn.com/content/v1/5864d96703596e675552b72c/1603059484317-HYZBU2YGP4RGOOEW66G4/Samsung_-Galaxy-S20-Ultra-Back.jpg",
+      "image": "https://i.ytimg.com/vi/5GZdULOLv7Y/maxresdefault.jpg",
+      "images": [
+        "https://www.pcworld.com/wp-content/uploads/2025/04/note-20-s20-ultra-back-100854197-orig-1.jpg",
+        "https://fdn2.gsmarena.com/vv/pics/samsung/samsung-galaxy-s20-ultra-12.jpg",
+        "https://sm.pcmag.com/pcmag_au/review/s/samsung-ga/samsung-galaxy-s20-ultra_dksc.jpg",
+        "https://m.media-amazon.com/images/I/71cD4NUIBWL._AC_UF894,1000_QL80_.jpg"
+      ],
       "category": "Electronics",
       "dealType": "lightning",
-      "endTime": "2026-03-05T09:11",
+      "endTime": "2026-03-05T03:11",
       "stock": 10,
       "sold": 0,
       "rating": 4.5,
