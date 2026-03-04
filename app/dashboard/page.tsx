@@ -15,15 +15,14 @@ export default function DashboardPage() {
     const fetchData = async () => {
       try {
         // Fetch all data in parallel - single call for each endpoint
-        const [products, categories, deals, blog, orders] = await Promise.all([
+        const [products, categories, deals, blog, orders, banners] = await Promise.all([
           api.products.list(),
           api.categories.list(),
           api.deals.list(),
           api.blog.list(),
-          api.orders.list()
+          api.orders.list(),
+          api.banners.list()
         ])
-        
-        const bannerCount = categories?.slice(0, 4).length || 0
         
         setStats({
           products: products?.length ?? 0,
@@ -31,7 +30,7 @@ export default function DashboardPage() {
           deals: deals?.length ?? 0,
           blog: blog?.length ?? 0,
           orders: orders?.length ?? 0,
-          banners: bannerCount
+          banners: banners?.length ?? 0
         })
 
         // Use already fetched data instead of making new API calls
