@@ -101,7 +101,7 @@ export default function DashboardPage() {
                       <p className="text-sm text-gray-500">{order.customer?.name || 'Unknown'}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">${order.total}</p>
+                      <p className="font-semibold text-gray-900">৳{order.total}</p>
                       <p className={`text-xs px-2 py-1 rounded-full ${
                         order.status === 'completed' ? 'bg-green-100 text-green-700' :
                         order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
@@ -147,7 +147,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">{product.name}</p>
-                        <p className="text-sm text-gray-500">${product.price}</p>
+                        <p className="text-sm text-gray-500">৳{product.price}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -175,15 +175,15 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
             <p className="text-sm text-blue-600">Today's Revenue</p>
-            <p className="text-2xl font-bold text-blue-900">$0.00</p>
+            <p className="text-2xl font-bold text-blue-900">৳0.00</p>
           </div>
           <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
             <p className="text-sm text-green-600">This Week</p>
-            <p className="text-2xl font-bold text-green-900">$0.00</p>
+            <p className="text-2xl font-bold text-green-900">৳0.00</p>
           </div>
           <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg">
             <p className="text-sm text-purple-600">This Month</p>
-            <p className="text-2xl font-bold text-purple-900">$0.00</p>
+            <p className="text-2xl font-bold text-purple-900">৳0.00</p>
           </div>
         </div>
       </div>

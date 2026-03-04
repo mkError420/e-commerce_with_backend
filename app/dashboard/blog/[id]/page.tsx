@@ -331,19 +331,6 @@ export default function EditBlogPage() {
         
         <div className="flex gap-3 pt-4 border-t">
           <button 
-            type="button"
-            onClick={() => {
-              console.log('Current form data:', form)
-              console.log('Form ID:', id)
-              console.log('Featured status:', form.featured)
-              console.log('Featured type:', typeof form.featured)
-              alert(`Featured: ${form.featured} (Type: ${typeof form.featured})\nCheck console for full form data`)
-            }}
-            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-          >
-            Debug Form
-          </button>
-          <button 
             type="submit" 
             disabled={saving} 
             className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
