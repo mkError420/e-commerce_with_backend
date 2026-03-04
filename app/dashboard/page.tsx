@@ -95,25 +95,113 @@ export default function DashboardPage() {
             <div className="space-y-3">
               {recentOrders.length > 0 ? (
                 recentOrders.map((order: any) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900">{order.orderNumber}</p>
-                      <p className="text-sm text-gray-500">{order.customer?.name || 'Unknown'}</p>
+                  <div key={order.id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <h4 className="font-semibold text-gray-900 text-lg">{order.orderNumber}</h4>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                            order.status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {order.status}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">Order Date: {order.orderDate || new Date().toLocaleDateString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-bold text-gray-900">৳{order.total}</p>
+                        <p className="text-xs text-gray-500">Total Amount</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900">৳{order.total}</p>
-                      <p className={`text-xs px-2 py-1 rounded-full ${
-                        order.status === 'completed' ? 'bg-green-100 text-green-700' :
-                        order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {order.status}
-                      </p>
+
+                    {/* Customer Information */}
+                    <div className="border-t pt-4 mb-4">
+                      <h5 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        Customer Information
+                      </h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-600">Name:</p>
+                          <p className="font-medium text-gray-900">{order.customer?.name || 'Unknown'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Email:</p>
+                          <p className="font-medium text-gray-900">{order.customer?.email || 'Not provided'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Phone:</p>
+                          <p className="font-medium text-gray-900">{order.customer?.phone || 'Not provided'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Address:</p>
+                          <p className="font-medium text-gray-900">{order.customer?.address || 'Not provided'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Payment Details */}
+                    <div className="border-t pt-4">
+                      <h5 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Payment Details
+                      </h5>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-600">Method:</p>
+                          <p className="font-medium text-gray-900">{order.payment?.method || 'Cash on Delivery'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Status:</p>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            order.payment?.status === 'paid' ? 'bg-green-100 text-green-700' :
+                            order.payment?.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {order.payment?.status || 'Pending'}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Transaction ID:</p>
+                          <p className="font-medium text-gray-900">{order.payment?.transactionId || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Order Items Summary */}
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600">Items: {order.items?.length || 0} products</p>
+                          <p className="text-xs text-gray-500">Order ID: #{order.id}</p>
+                        </div>
+                        <Link 
+                          href={`/dashboard/orders/${order.id}`}
+                          className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                        >
+                          View Details →
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">No recent orders</p>
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500 font-medium">No recent orders</p>
+                  <p className="text-gray-400 text-sm mt-1">Orders will appear here once customers start shopping</p>
+                </div>
               )}
             </div>
           )}

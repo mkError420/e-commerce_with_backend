@@ -51,7 +51,7 @@ const OrdersPage = () => {
     const invoiceContent = `
       <html>
         <head>
-          <title>Invoice - ${orderId}</title>
+          <title>Invoice - ${order.orderNumber || orderId}</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 20px; }
             .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #059669; padding-bottom: 20px; }
@@ -74,7 +74,7 @@ const OrdersPage = () => {
           <div class="invoice-info">
             <div class="info-row">
               <strong>Invoice Number:</strong>
-              <span>${orderId}</span>
+              <span>${order.orderNumber || orderId}</span>
             </div>
             <div class="info-row">
               <strong>Order Date:</strong>

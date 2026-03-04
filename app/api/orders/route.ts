@@ -6,9 +6,26 @@ function generateOrderNumber() {
   return 'ORD-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase()
 }
 
-export async function GET() {
-  const db = await getDb()
-  return apiSuccess(db.orders)
+export async function GET(req: NextRequest) {
+  try {
+    const db = await getDb()
+    const url = new URL(req.url)
+    const id = url.searchParams.get('id')
+    
+    if (id) {
+      // Get single order by ID
+      const order = db.orders.find((order: any) => order.id === id)
+      if (!order) {
+        return apiError('Order not found', 404)
+      }
+      return apiSuccess(order)
+    } else {
+      // Get all orders
+      return apiSuccess(db.orders)
+    }
+  } catch (error) {
+    return apiError('Failed to fetch orders', 500)
+  }
 }
 
 export async function POST(req: NextRequest) {
