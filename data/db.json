@@ -177,7 +177,7 @@
       "paymentMethod": "bkash",
       "paymentInfo": "Fgyaf45Ik",
       "createdAt": "2026-03-04T07:59:53.363Z",
-      "paymentStatus": "failed"
+      "paymentStatus": "paid"
     },
     {
       "id": "mmbr29d32xqcwtwhrzo",
@@ -205,7 +205,7 @@
       "paymentMethod": "bkash",
       "paymentInfo": "FH7Igfejb",
       "createdAt": "2026-03-04T08:03:24.519Z",
-      "paymentStatus": "pending"
+      "paymentStatus": "paid"
     },
     {
       "id": "mmbr5sg6z0arsrzwdfp",

@@ -35,7 +35,7 @@ export default function DashboardPage() {
         })
 
         // Use already fetched data instead of making new API calls
-        setRecentOrders(orders?.slice(0, 5) || [])
+        setRecentOrders(orders?.slice(0, 2) || [])
         setTopProducts(products?.slice(0, 5) || [])
 
       } catch (error) {
@@ -204,6 +204,21 @@ export default function DashboardPage() {
                   <p className="text-gray-400 text-sm mt-1">Orders will appear here once customers start shopping</p>
                 </div>
               )}
+            </div>
+          )}
+          
+          {/* View more orders button */}
+          {recentOrders.length > 0 && (
+            <div className="mt-4 pt-4 border-t">
+              <Link 
+                href="/dashboard/orders" 
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-shop_dark_green text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+              >
+                View more orders
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
             </div>
           )}
         </div>
