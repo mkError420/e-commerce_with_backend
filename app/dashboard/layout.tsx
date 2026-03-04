@@ -14,7 +14,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   useEffect(() => {
-    api.auth.me().then((r: any) => { setUser(r.user); setLoading(false) }).catch(() => { setLoading(false); router.push('/dashboard/login') })
+    const checkAuth = async () => {
+      try {
+        // First check if we have a session by trying to get user data
+        const response = await api.auth.me()
+        setUser(response.user)
+        setLoading(false)
+      } catch (error) {
+        // Silently redirect to login without showing errors
+        setLoading(false)
+        router.push('/dashboard/login')
+      }
+    }
+    
+    checkAuth()
   }, [router])
 
   const handleLogout = async () => {

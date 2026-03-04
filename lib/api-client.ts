@@ -41,12 +41,20 @@ export async function fetchApi<T>(path: string, options?: RequestInit): Promise<
   }
 
   const url = path.startsWith('http') ? path : `${BASE}/api${path}`
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development' && path !== '/auth/me') {
     console.log('fetchApi: Calling URL:', url)
   }
+  
   const res = await fetch(url, { ...options, credentials: 'include' })
   if (!res.ok) {
-    console.error('fetchApi: Error response:', res.status, res.statusText)
+    // Don't log 401 errors for auth me endpoint (expected when not logged in)
+    if (!(path === '/auth/me' && res.status === 401)) {
+      console.error('fetchApi: Error response:', res.status, res.statusText)
+    }
+    // For auth me 401, throw a silent error
+    if (path === '/auth/me' && res.status === 401) {
+      throw new Error('Unauthorized')
+    }
     throw new Error(`API Error: ${res.status} ${res.statusText}`)
   }
   const json = await res.json()
