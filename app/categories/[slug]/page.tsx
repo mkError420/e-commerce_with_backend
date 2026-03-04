@@ -34,7 +34,7 @@ interface Product {
 
 export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params)
-  const slug = resolvedParams.slug
+  const slug = decodeURIComponent(resolvedParams.slug)
   
   const { categories, loading: categoriesLoading, error: categoriesError } = useCategories()
   const { categories: flatCategories, loading: flatCategoriesLoading, error: flatCategoriesError } = useFlatCategories()
@@ -51,6 +51,16 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
   const currentCategory = flatCategories.find(cat => cat.slug === slug)
   const parentCategory = currentCategory?.parentId ? 
     flatCategories.find(cat => cat.id === currentCategory.parentId) : null
+  
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Category Page Debug:', {
+      slug,
+      flatCategories: flatCategories.map(cat => ({ id: cat.id, title: cat.title, slug: cat.slug })),
+      currentCategory,
+      parentCategory
+    })
+  }
   
   // Get main category data if this is a subcategory
   const mainCategory = currentCategory?.parentId ? 
