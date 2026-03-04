@@ -108,7 +108,7 @@ export default function NewDealPage() {
       const response = await api.deals.create(dealData)
       console.log('Create response:', response)
       
-      if (!response || !response.data) {
+      if (!response) {
         throw new Error('Invalid response from server')
       }
       

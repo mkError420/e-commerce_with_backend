@@ -70,22 +70,60 @@
   ],
   "deals": [
     {
-      "id": "mmbmo2fps13fxles86i",
-      "title": "Updated Test Deal",
-      "originalPrice": 120,
-      "dealPrice": 90,
-      "discount": 25,
-      "image": "/api/placeholder/400/300",
-      "images": [],
+      "id": "mmbn84080jzamo0402wi",
+      "title": "Super deal: Best Samsung phones",
+      "originalPrice": 27900.9,
+      "dealPrice": 24690.9,
+      "discount": 12,
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmdr-t7nODszaBxRZz-0_MUAl8dRo3oQFXCw&s",
+      "images": [
+        "https://www.custommacbd.com/cdn/shop/files/samsung-galaxy-s24-sapphire-blue-Custom-Mac-BD.png?v=1706354011",
+        "https://storage.googleapis.com/pickaboo-prod/media/catalog/product/cache/948612736c72ae3709677d5981c43a49/s/2/s26-2-28-26-12.jpg",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8ecF010m_0ikOXEotQjvaGYwtrYkBss573g&s",
+        "https://cdn.mos.cms.futurecdn.net/n492cdTmAtXoxYWXC3iyrB.jpg"
+      ],
       "category": "Electronics",
-      "dealType": "daily",
-      "endTime": "2026-03-11T06:00:31.768Z",
+      "dealType": "lightning",
+      "endTime": "2026-03-06T01:14",
       "stock": 10,
       "sold": 0,
       "rating": 4.5,
-      "reviews": 0,
-      "description": "",
-      "features": [],
+      "reviews": 25,
+      "description": "The best Samsung phones in 2026 focus on the company's strengths, like long software support promises, great features, and top-notch hardware quality.",
+      "features": [
+        "Phone",
+        "Offer",
+        "Deal",
+        "Best Offer"
+      ],
+      "freeShipping": true
+    },
+    {
+      "id": "mmbnjuxyx9e9e8f4rc",
+      "title": "Best Laptop Price in BD 2026",
+      "originalPrice": 48900.9,
+      "dealPrice": 45600.9,
+      "discount": 7,
+      "image": "https://image.made-in-china.com/43f34j00LbTvFHoJySkZ/Mini-Laptop-PC-Personal-Computer-1920-1080-Resolution-8g-RAM-1tb-SSD-Ultra-Thin-Laptop.webp",
+      "images": [
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5VaBcdkdCPm1T-Cos4gTQ3YT_4MtH11PKwA&s",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFu9fEnwERki9w_I3wzUw5H4iDABoKGyox5g&s",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFnd0MD1K-UbynKoZs6rO7sR-l4WMx4hZTDA&s",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFu9fEnwERki9w_I3wzUw5H4iDABoKGyox5g&s"
+      ],
+      "category": "Electronics",
+      "dealType": "lightning",
+      "endTime": "2026-03-06T12:24",
+      "stock": 10,
+      "sold": 0,
+      "rating": 4.5,
+      "reviews": 18,
+      "description": "Power in a slim and lightweight package is what most people look for in a laptop. Unfortunately, when you put the two together, you'll often get a price that's hard to afford. And while it'll be worth the price, we always recommend buying something like this when it's on sale.",
+      "features": [
+        "Deal",
+        "Offer",
+        "New Offer"
+      ],
       "freeShipping": true
     }
   ],
