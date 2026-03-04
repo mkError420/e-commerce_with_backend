@@ -4,118 +4,7 @@ import { useState, useEffect } from 'react'
 import { Clock, Zap, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import DealCard from './DealCard'
-
-// Sample hot deals data - in a real app, this would come from an API
-const hotDeals = [
-  {
-    id: 1,
-    title: 'Lightning Deal: Premium Wireless Headphones',
-    originalPrice: 199.99,
-    dealPrice: 89.99,
-    discount: 55,
-    image: '/images/products/product_1.png',
-    category: 'Electronics',
-    dealType: 'lightning' as const,
-    endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
-    stock: 15,
-    sold: 85,
-    rating: 4.5,
-    reviews: 128,
-    description: 'Premium noise-cancelling wireless headphones with superior sound quality',
-    features: ['Noise Cancelling', '30hr Battery', 'Premium Sound'],
-    freeShipping: true
-  },
-  {
-    id: 2,
-    title: 'Daily Deal: Smart Watch Pro',
-    originalPrice: 349.99,
-    dealPrice: 199.99,
-    discount: 43,
-    image: '/images/products/product_2.png',
-    category: 'Electronics',
-    dealType: 'daily' as const,
-    endTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
-    stock: 8,
-    sold: 42,
-    rating: 4.8,
-    reviews: 89,
-    description: 'Advanced fitness tracking and health monitoring smartwatch',
-    features: ['Heart Rate Monitor', 'GPS Tracking', 'Water Resistant'],
-    freeShipping: true
-  },
-  {
-    id: 3,
-    title: 'Lightning Deal: Gaming Mechanical Keyboard',
-    originalPrice: 189.99,
-    dealPrice: 99.99,
-    discount: 47,
-    image: '/images/products/product_5.png',
-    category: 'Gaming',
-    dealType: 'lightning' as const,
-    endTime: new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString(), // 1 hour from now
-    stock: 12,
-    sold: 38,
-    rating: 4.6,
-    reviews: 167,
-    description: 'RGB mechanical gaming keyboard with customizable lighting',
-    features: ['Mechanical Switches', 'RGB Lighting', 'Programmable Keys'],
-    freeShipping: true
-  },
-  {
-    id: 4,
-    title: 'Daily Deal: Organic Skincare Set',
-    originalPrice: 119.99,
-    dealPrice: 59.99,
-    discount: 50,
-    image: '/images/products/product_4.png',
-    category: 'Beauty',
-    dealType: 'daily' as const,
-    endTime: new Date(Date.now() + 18 * 60 * 60 * 1000).toISOString(), // 18 hours from now
-    stock: 25,
-    sold: 75,
-    rating: 4.9,
-    reviews: 203,
-    description: 'Complete organic skincare routine for radiant skin',
-    features: ['Organic Ingredients', 'Cruelty Free', 'All Skin Types'],
-    freeShipping: true
-  },
-  {
-    id: 5,
-    title: 'Lightning Deal: Professional Camera Lens',
-    originalPrice: 899.99,
-    dealPrice: 449.99,
-    discount: 50,
-    image: '/images/products/product_6.png',
-    category: 'Photography',
-    dealType: 'lightning' as const,
-    endTime: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(), // 3 hours from now
-    stock: 3,
-    sold: 17,
-    rating: 4.8,
-    reviews: 94,
-    description: 'Professional 50mm camera lens for photography enthusiasts',
-    features: ['50mm Focal Length', 'Wide Aperture', 'Sharp Images'],
-    freeShipping: false
-  },
-  {
-    id: 6,
-    title: 'Daily Deal: Stainless Steel Water Bottle',
-    originalPrice: 49.99,
-    dealPrice: 19.99,
-    discount: 60,
-    image: '/images/products/product_9.png',
-    category: 'Sports',
-    dealType: 'daily' as const,
-    endTime: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(), // 12 hours from now
-    stock: 50,
-    sold: 150,
-    rating: 4.3,
-    reviews: 67,
-    description: 'Insulated water bottle that keeps drinks cold for 24 hours',
-    features: ['24hr Cold', 'BPA Free', 'Leak Proof'],
-    freeShipping: true
-  }
-]
+import { api } from '@/lib/api-client'
 
 const SpecialOffers = () => {
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -123,6 +12,23 @@ const SpecialOffers = () => {
   const [visibleDeals, setVisibleDeals] = useState(6)
   const [endingSoonCount, setEndingSoonCount] = useState(0)
   const [isClient, setIsClient] = useState(false)
+  const [hotDeals, setHotDeals] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch deals from API
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const deals = await api.deals.list()
+        setHotDeals(deals)
+      } catch (error) {
+        console.error('Error fetching deals:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchDeals()
+  }, [])
 
   // Update current time every second for countdown timers
   useEffect(() => {
@@ -136,17 +42,17 @@ const SpecialOffers = () => {
 
   // Update ending soon count on client side only
   useEffect(() => {
-    if (isClient) {
-      const count = hotDeals.filter(deal => {
+    if (isClient && hotDeals.length > 0) {
+      const count = hotDeals.filter((deal: any) => {
         const timeLeft = new Date(deal.endTime).getTime() - currentTime.getTime()
         return timeLeft > 0 && timeLeft < 2 * 60 * 60 * 1000 // Less than 2 hours
       }).length
       setEndingSoonCount(count)
     }
-  }, [currentTime, isClient])
+  }, [currentTime, isClient, hotDeals])
 
   // Filter deals based on selected filter
-  const filteredDeals = hotDeals.filter(deal => {
+  const filteredDeals = hotDeals.filter((deal: any) => {
     if (selectedFilter === 'all') return true
     if (selectedFilter === 'lightning') return deal.dealType === 'lightning'
     if (selectedFilter === 'daily') return deal.dealType === 'daily'
@@ -154,7 +60,7 @@ const SpecialOffers = () => {
   })
 
   // Sort deals by urgency (ending soon first)
-  const sortedDeals = [...filteredDeals].sort((a, b) => {
+  const sortedDeals = [...filteredDeals].sort((a: any, b: any) => {
     const timeLeftA = new Date(a.endTime).getTime() - Date.now()
     const timeLeftB = new Date(b.endTime).getTime() - Date.now()
     return timeLeftA - timeLeftB
@@ -165,9 +71,9 @@ const SpecialOffers = () => {
 
   // Calculate stats
   const totalDeals = hotDeals.length
-  const lightningDeals = hotDeals.filter(deal => deal.dealType === 'lightning').length
-  const dailyDeals = hotDeals.filter(deal => deal.dealType === 'daily').length
-  const avgDiscount = Math.round(hotDeals.reduce((acc, deal) => acc + deal.discount, 0) / hotDeals.length)
+  const lightningDeals = hotDeals.filter((deal: any) => deal.dealType === 'lightning').length
+  const dailyDeals = hotDeals.filter((deal: any) => deal.dealType === 'daily').length
+  const avgDiscount = hotDeals.length > 0 ? Math.round(hotDeals.reduce((acc: number, deal: any) => acc + deal.discount, 0) / hotDeals.length) : 0
 
   return (
     <section className='py-16 bg-shop_light_bg'>
@@ -237,6 +143,34 @@ const SpecialOffers = () => {
             Daily ({dailyDeals})
           </button>
         </div>
+
+        {/* Deals Grid */}
+        {loading ? (
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12'>
+            {[...Array(6)].map((_, index) => (
+              <div key={index} className='bg-white rounded-2xl shadow-lg p-6 animate-pulse'>
+                <div className='h-48 bg-gray-200 rounded-xl mb-4'></div>
+                <div className='h-6 bg-gray-200 rounded mb-2'></div>
+                <div className='h-4 bg-gray-200 rounded mb-4'></div>
+                <div className='flex justify-between items-center'>
+                  <div className='h-8 bg-gray-200 rounded w-20'></div>
+                  <div className='h-8 bg-gray-200 rounded w-24'></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : displayedDeals.length > 0 ? (
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12'>
+            {displayedDeals.map((deal: any) => (
+              <DealCard key={deal.id} deal={deal} currentTime={currentTime} />
+            ))}
+          </div>
+        ) : (
+          <div className='text-center py-12 mb-12'>
+            <p className='text-xl text-gray-600'>No deals available at the moment.</p>
+            <p className='text-gray-500 mt-2'>Check back later for amazing offers!</p>
+          </div>
+        )}
 
         {/* Large View All Button */}
         <div className='text-center'>
