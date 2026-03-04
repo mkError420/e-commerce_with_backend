@@ -96,33 +96,7 @@ export default function BannersPage() {
     }
   }
 
-  // Add this after the existing handleSubmit function
-const testApi = async () => {
-  console.log('Testing API...')
-  try {
-    const response = await fetch('/api/test', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ test: 'data', timestamp: Date.now() })
-    })
-    console.log('Test API response status:', response.status)
-    console.log('Test API response headers:', response.headers)
-    
-    const text = await response.text()
-    console.log('Test API response text:', text)
-    
-    try {
-      const json = JSON.parse(text)
-      console.log('Test API response JSON:', json)
-    } catch (parseError) {
-      console.error('Test API JSON parse error:', parseError)
-    }
-  } catch (error) {
-    console.error('Test API error:', error)
-  }
-}
-
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     console.log('Banner form submission - formData:', formData)
@@ -249,12 +223,6 @@ const handleSubmit = async (e: React.FormEvent) => {
           <p className="text-gray-600">Manage shop page banner carousel</p>
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={testApi}
-            className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-          >
-            Test API
-          </button>
           <button
             onClick={handlePreview}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
