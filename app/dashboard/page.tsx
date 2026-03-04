@@ -14,7 +14,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch stats
+        // Fetch all data in parallel - single call for each endpoint
         const [products, categories, deals, blog, orders] = await Promise.all([
           api.products.list(),
           api.categories.list(),
@@ -34,13 +34,9 @@ export default function DashboardPage() {
           banners: bannerCount
         })
 
-        // Fetch recent orders
-        const recentOrdersData = await api.orders.list()
-        setRecentOrders(recentOrdersData?.slice(0, 5) || [])
-
-        // Fetch top products (mock data for now)
-        const productsData = await api.products.list()
-        setTopProducts(productsData?.slice(0, 5) || [])
+        // Use already fetched data instead of making new API calls
+        setRecentOrders(orders?.slice(0, 5) || [])
+        setTopProducts(products?.slice(0, 5) || [])
 
       } catch (error) {
         console.error('Error fetching dashboard data:', error)

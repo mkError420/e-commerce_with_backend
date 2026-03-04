@@ -68,7 +68,27 @@
       "icon": ""
     }
   ],
-  "deals": [],
+  "deals": [
+    {
+      "id": "mmbmo2fps13fxles86i",
+      "title": "Updated Test Deal",
+      "originalPrice": 120,
+      "dealPrice": 90,
+      "discount": 25,
+      "image": "/api/placeholder/400/300",
+      "images": [],
+      "category": "Electronics",
+      "dealType": "daily",
+      "endTime": "2026-03-11T06:00:31.768Z",
+      "stock": 10,
+      "sold": 0,
+      "rating": 4.5,
+      "reviews": 0,
+      "description": "",
+      "features": [],
+      "freeShipping": true
+    }
+  ],
   "blogPosts": [],
   "orders": [],
   "users": [],

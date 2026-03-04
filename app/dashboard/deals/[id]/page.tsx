@@ -6,6 +6,15 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { api } from '@/lib/api-client'
 
+interface Category {
+  id: string
+  title: string
+  slug: string
+  href: string
+  parentId?: string
+  subcategories?: Category[]
+}
+
 export default function EditDealPage() {
   const router = useRouter()
   const params = useParams()
@@ -14,6 +23,29 @@ export default function EditDealPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [categories, setCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await api.categories.list()
+        // Build hierarchical structure
+        const mainCategories = data.filter((cat: Category) => !cat.parentId)
+        const subcategories = data.filter((cat: Category) => cat.parentId)
+        
+        const structuredCategories = mainCategories.map(main => ({
+          ...main,
+          subcategories: subcategories.filter(sub => sub.parentId === main.id)
+        }))
+        
+        setCategories(structuredCategories)
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
+    }
+
+    fetchCategories()
+  }, [])
 
   useEffect(() => { 
     const fetchDeal = async () => {
@@ -153,7 +185,21 @@ export default function EditDealPage() {
         </div>
         
         <div className="grid grid-cols-2 gap-4">
-          <div><label className="block text-sm font-medium mb-1">Category</label><input value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full px-4 py-2 border rounded-lg" placeholder="Electronics" /></div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Category</label>
+            <select 
+              value={form.category} 
+              onChange={e => setForm({ ...form, category: e.target.value })} 
+              className="w-full px-4 py-2 border rounded-lg"
+            >
+              <option value="">Select a category</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.title}>
+                  {category.title}
+                </option>
+              ))}
+            </select>
+          </div>
           <div><label className="block text-sm font-medium mb-1">Deal Type</label><select value={form.dealType} onChange={e => setForm({ ...form, dealType: e.target.value })} className="w-full px-4 py-2 border rounded-lg"><option value="daily">Daily Deal</option><option value="lightning">Lightning Deal</option></select></div>
         </div>
         

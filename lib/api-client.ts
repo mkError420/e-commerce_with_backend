@@ -1,16 +1,66 @@
 const BASE = typeof window !== 'undefined' ? '' : process.env.NEXTAUTH_URL || 'http://localhost:3001'
 
+// Simple client-side cache
+const cache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
+function getCacheKey(path: string, options?: RequestInit): string {
+  return `${path}${JSON.stringify(options || {})}`
+}
+
+function getFromCache<T>(key: string): T | null {
+  const cached = cache.get(key)
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Cache HIT for:', key)
+    }
+    return cached.data
+  }
+  if (cached) {
+    cache.delete(key)
+  }
+  return null
+}
+
+function setCache<T>(key: string, data: T): void {
+  cache.set(key, { data, timestamp: Date.now() })
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Cache SET for:', key)
+  }
+}
+
 export async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
+  const cacheKey = getCacheKey(path, options)
+  
+  // Only cache GET requests
+  if (!options || options.method === 'GET' || !options.method) {
+    const cached = getFromCache<T>(cacheKey)
+    if (cached) {
+      return cached
+    }
+  }
+
   const url = path.startsWith('http') ? path : `${BASE}/api${path}`
-  console.log('fetchApi: Calling URL:', url)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('fetchApi: Calling URL:', url)
+  }
   const res = await fetch(url, { ...options, credentials: 'include' })
   if (!res.ok) {
     console.error('fetchApi: Error response:', res.status, res.statusText)
     throw new Error(`API Error: ${res.status} ${res.statusText}`)
   }
   const json = await res.json()
-  console.log('fetchApi: Response data length:', Array.isArray(json) ? json.length : 'not array')
-  return json.data ?? json
+  const data = json.data ?? json
+  if (process.env.NODE_ENV === 'development') {
+    console.log('fetchApi: Response data length:', Array.isArray(data) ? data.length : 'not array')
+  }
+  
+  // Cache successful GET requests
+  if (!options || options.method === 'GET' || !options.method) {
+    setCache(cacheKey, data)
+  }
+  
+  return data
 }
 
 export const api = {
@@ -33,7 +83,7 @@ export const api = {
     list: () => fetchApi<any[]>('/banners'),
     get: (id: string) => fetchApi<any>(`/banners/${id}`),
     create: (data: any) => fetchApi<any>('/banners', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
-    update: (id: string, data: any) => fetchApi<any>('/banners', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, ...data }) }),
+    update: (id: string, data: any) => fetchApi<any>(`banners`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, ...data }) }),
     delete: (id: string) => fetchApi<any>(`/banners?id=${id}`, { method: 'DELETE' })
   },
   deals: {
@@ -61,5 +111,11 @@ export const api = {
       fetchApi<{ token: string; email: string }>('/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) }),
     logout: () => fetchApi<any>('/auth/logout', { method: 'POST' }),
     me: () => fetchApi<{ user: { id: string; email: string; role: string } }>('/auth/me')
+  },
+  clearCache: () => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Clearing API client cache')
+    }
+    cache.clear()
   }
 }
