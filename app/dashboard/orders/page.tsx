@@ -2,15 +2,37 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Eye, Save, Download } from 'lucide-react'
+import { Eye, Save, Download, Search, ChevronDown } from 'lucide-react'
 import { api } from '@/lib/api-client'
 
 export default function DashboardOrdersPage() {
   const [orders, setOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showExportDropdown, setShowExportDropdown] = useState(false)
 
   useEffect(() => { api.orders.list().then(setOrders).finally(() => setLoading(false)) }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showExportDropdown && !(event.target as Element).closest('.export-dropdown')) {
+        setShowExportDropdown(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showExportDropdown])
+
+  const filteredOrders = orders.filter((order) => {
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      order.orderNumber?.toLowerCase().includes(searchLower) ||
+      order.phone?.toLowerCase().includes(searchLower) ||
+      order.email?.toLowerCase().includes(searchLower)
+    )
+  })
 
   const statusOptions = [
     { value: 'pending', label: 'Pending' },
@@ -219,11 +241,185 @@ export default function DashboardOrdersPage() {
     }
   }
 
+  const exportToCSV = () => {
+    const ordersToExport = searchTerm ? filteredOrders : orders
+    const headers = [
+      'Order Number', 'Customer Name', 'Email', 'Phone', 'Address', 
+      'Total Amount', 'Payment Method', 'Payment Status', 'Order Status', 
+      'Order Date', 'Items Count'
+    ]
+    
+    const csvContent = [
+      headers.join(','),
+      ...ordersToExport.map(order => [
+        `"${order.orderNumber || ''}"`,
+        `"${order.name || ''}"`,
+        `"${order.email || ''}"`,
+        `"${order.phone || ''}"`,
+        `"${order.address || ''}"`,
+        `"${order.total || 0}"`,
+        `"${order.paymentMethod || ''}"`,
+        `"${order.paymentStatus || ''}"`,
+        `"${order.status || ''}"`,
+        `"${new Date(order.createdAt).toLocaleDateString()}"`,
+        `"${order.items?.length || 0}"`
+      ].join(','))
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `orders_export_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    setShowExportDropdown(false)
+  }
+
+  const exportToPDF = () => {
+    const ordersToExport = searchTerm ? filteredOrders : orders
+    const pdfContent = `
+      <html>
+        <head>
+          <title>Orders Export - ${new Date().toLocaleDateString()}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #059669; padding-bottom: 20px; }
+            .logo { font-size: 28px; font-weight: bold; color: #059669; margin-bottom: 10px; }
+            .orders-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            .orders-table th { background: #059669; color: white; padding: 12px; text-align: left; }
+            .orders-table td { border: 1px solid #ddd; padding: 12px; }
+            .orders-table tr:nth-child(even) { background: #f9f9f9; }
+            .footer { text-align: center; margin-top: 30px; color: #666; }
+            .summary { margin: 20px 0; padding: 15px; background: #f0f9ff; border-radius: 8px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">mk-ShopBD</div>
+            <h1>ORDERS EXPORT REPORT</h1>
+            <p>Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+            <p>Total Orders: ${ordersToExport.length}</p>
+          </div>
+          
+          <div class="summary">
+            <h3>Summary</h3>
+            <p>Total Revenue: ৳${ordersToExport.reduce((sum, order) => sum + (order.total || 0), 0).toLocaleString()}</p>
+            <p>Pending Orders: ${ordersToExport.filter(order => order.status === 'pending').length}</p>
+            <p>Completed Orders: ${ordersToExport.filter(order => order.status === 'delivered').length}</p>
+            <p>Paid Orders: ${ordersToExport.filter(order => order.paymentStatus === 'paid').length}</p>
+          </div>
+          
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Contact</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${ordersToExport.map((order, index) => `
+                <tr>
+                  <td>${order.orderNumber}</td>
+                  <td>
+                    <strong>${order.name}</strong><br>
+                    <small>${order.address}</small>
+                  </td>
+                  <td>
+                    <div>${order.phone}</div>
+                    <small>${order.email}</small>
+                  </td>
+                  <td>৳${(order.total || 0).toLocaleString()}</td>
+                  <td>
+                    <span style="background: ${order.paymentStatus === 'paid' ? '#d1fae5' : '#fef3c7'}; color: ${order.paymentStatus === 'paid' ? '#065f46' : '#92400e'}; padding: 4px 8px; border-radius: 12px; font-size: 12px;">
+                      ${order.paymentStatus || 'pending'}
+                    </span>
+                  </td>
+                  <td>
+                    <span style="background: ${order.status === 'delivered' ? '#d1fae5' : order.status === 'cancelled' ? '#fee2e2' : '#fef3c7'}; color: ${order.status === 'delivered' ? '#065f46' : order.status === 'cancelled' ? '#991b1b' : '#92400e'}; padding: 4px 8px; border-radius: 12px; font-size: 12px;">
+                      ${order.status || 'pending'}
+                    </span>
+                  </td>
+                  <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <div class="footer">
+            <p>This is a computer-generated report.</p>
+            <p>© ${new Date().getFullYear()} mk-ShopBD. All rights reserved.</p>
+          </div>
+        </body>
+      </html>
+    `
+    
+    const printWindow = window.open('', '_blank')
+    if (printWindow) {
+      printWindow.document.write(pdfContent)
+      printWindow.document.close()
+      
+      setTimeout(() => {
+        printWindow.print()
+      }, 500)
+    }
+    setShowExportDropdown(false)
+  }
+
   if (loading) return <div className="animate-pulse h-64 bg-gray-200 rounded" />
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-800">Orders</h2>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search by order number, phone, or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-80"
+            />
+          </div>
+          
+          <div className="relative export-dropdown">
+            <button
+              onClick={() => setShowExportDropdown(!showExportDropdown)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Export
+              <ChevronDown className={`w-4 h-4 transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {showExportDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                <button
+                  onClick={exportToCSV}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                >
+                  <Download className="w-4 h-4" />
+                  Export as CSV
+                </button>
+                <button
+                  onClick={exportToPDF}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                >
+                  <Download className="w-4 h-4" />
+                  Export as PDF
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full">
@@ -239,7 +435,7 @@ export default function DashboardOrdersPage() {
             </tr>
           </thead>
           <tbody>
-            {orders.map((o) => (
+            {filteredOrders.map((o) => (
               <tr key={o.id} className="border-b hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono font-medium">{o.orderNumber}</td>
                 <td className="px-4 py-3">{o.name}<br /><span className="text-xs text-gray-500">{o.email}</span></td>
@@ -307,7 +503,11 @@ export default function DashboardOrdersPage() {
             ))}
           </tbody>
         </table>
-        {orders.length === 0 && <p className="p-8 text-center text-gray-500">No orders yet.</p>}
+        {filteredOrders.length === 0 && (
+          <p className="p-8 text-center text-gray-500">
+            {searchTerm ? 'No orders found matching your search.' : 'No orders yet.'}
+          </p>
+        )}
       </div>
     </div>
   )
