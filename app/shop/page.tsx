@@ -351,8 +351,8 @@ const ShopPage = () => {
                           <p className="text-xs md:text-sm mb-4 opacity-90 hidden md:block">{slide.description}</p>
                           <button
                             onClick={() => {
-                              setSelectedCategory([slide.category])
-                              setCurrentPage(1)
+                              // Redirect to deals page
+                              window.location.href = '/deals'
                             }}
                             className="bg-white text-shop_dark_green px-4 py-2 rounded-lg hover:bg-shop_light_green transition-all duration-200 font-medium hover:scale-105 hover:shadow-lg text-sm"
                           >
