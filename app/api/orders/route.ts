@@ -1,10 +1,7 @@
 import { NextRequest } from 'next/server'
 import { getDb, writeDb, generateId } from '@/lib/db'
 import { apiSuccess, apiError } from '@/lib/api-response'
-
-function generateOrderNumber() {
-  return 'ORD-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase()
-}
+import { generateOrderNumber } from '@/lib/order-number'
 
 export async function GET(req: NextRequest) {
   try {

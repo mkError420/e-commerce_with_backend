@@ -35,7 +35,10 @@ export default function DashboardPage() {
         })
 
         // Use already fetched data instead of making new API calls
-        setRecentOrders(orders?.slice(0, 2) || [])
+        const sortedOrders = orders?.sort((a: any, b: any) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ) || []
+        setRecentOrders(sortedOrders.slice(0, 2))
         setTopProducts(products?.slice(0, 5) || [])
 
       } catch (error) {

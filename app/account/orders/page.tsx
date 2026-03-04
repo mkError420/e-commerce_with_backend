@@ -210,7 +210,7 @@ const OrdersPage = () => {
                   <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
                     <div>
                       <p className='text-sm text-gray-500 mb-1'>Order Number</p>
-                      <p className='font-semibold text-gray-900'>{order.id}</p>
+                      <p className='font-semibold text-gray-900'>{order.orderNumber || order.id}</p>
                     </div>
                     <div>
                       <p className='text-sm text-gray-500 mb-1'>Order Date</p>

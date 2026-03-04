@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Eye, Save } from 'lucide-react'
+import { Eye, Save, Download } from 'lucide-react'
 import { api } from '@/lib/api-client'
 
 export default function DashboardOrdersPage() {
@@ -69,6 +69,153 @@ export default function DashboardOrdersPage() {
       console.error('Failed to update payment status:', error)
     } finally {
       setUpdatingId(null)
+    }
+  }
+
+  const downloadDeliveryVoucher = (order: any) => {
+    const voucherContent = `
+      <html>
+        <head>
+          <title>Delivery Voucher - ${order.orderNumber}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #059669; padding-bottom: 20px; }
+            .logo { font-size: 28px; font-weight: bold; color: #059669; margin-bottom: 10px; }
+            .voucher-info { margin: 20px 0; }
+            .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+            .section-title { font-weight: bold; margin: 20px 0 10px 0; color: #059669; }
+            .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            .items-table th { background: #059669; color: white; padding: 12px; text-align: left; }
+            .items-table td { border: 1px solid #ddd; padding: 12px; }
+            .footer { text-align: center; margin-top: 30px; color: #666; }
+            .signature-section { margin-top: 40px; display: flex; justify-content: space-between; }
+            .signature-box { width: 45%; text-align: center; }
+            .signature-line { border-bottom: 1px solid #000; margin: 40px 0 10px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">mk-ShopBD</div>
+            <h1>DELIVERY VOUCHER</h1>
+          </div>
+          
+          <div class="voucher-info">
+            <div class="info-row">
+              <strong>Voucher Number:</strong>
+              <span>${order.orderNumber}</span>
+            </div>
+            <div class="info-row">
+              <strong>Order Date:</strong>
+              <span>${new Date(order.createdAt).toLocaleDateString()}</span>
+            </div>
+            <div class="info-row">
+              <strong>Expected Delivery:</strong>
+              <span>${new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span>
+            </div>
+          </div>
+
+          <div class="section-title">Customer Information</div>
+          <div class="voucher-info">
+            <div class="info-row">
+              <strong>Name:</strong>
+              <span>${order.name}</span>
+            </div>
+            <div class="info-row">
+              <strong>Phone:</strong>
+              <span>${order.phone}</span>
+            </div>
+            <div class="info-row">
+              <strong>Email:</strong>
+              <span>${order.email}</span>
+            </div>
+            <div class="info-row">
+              <strong>Delivery Address:</strong>
+              <span>${order.address}, ${order.district || ''}, ${order.zipCode || ''}</span>
+            </div>
+          </div>
+
+          <div class="section-title">Order Items</div>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items?.map((item: any, index: any) => `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.quantity}</td>
+                  <td>৳${item.price.toLocaleString()}</td>
+                  <td>৳${(item.price * item.quantity).toLocaleString()}</td>
+                </tr>
+              `).join('') || '<tr><td colspan="4">No items found</td></tr>'}
+            </tbody>
+          </table>
+
+          <div class="voucher-info">
+            <div class="info-row">
+              <strong>Subtotal:</strong>
+              <span>৳${order.subtotal?.toLocaleString() || '0'}</span>
+            </div>
+            <div class="info-row">
+              <strong>Shipping:</strong>
+              <span>৳${order.shipping?.toLocaleString() || '0'}</span>
+            </div>
+            <div class="info-row" style="font-weight: bold; font-size: 18px; border-top: 1px solid #ddd; padding-top: 10px;">
+              <strong>Total Amount:</strong>
+              <span>৳${order.total?.toLocaleString() || '0'}</span>
+            </div>
+          </div>
+
+          <div class="section-title">Payment Information</div>
+          <div class="voucher-info">
+            <div class="info-row">
+              <strong>Payment Method:</strong>
+              <span>${order.paymentMethod || 'Cash on Delivery'}</span>
+            </div>
+            <div class="info-row">
+              <strong>Payment Status:</strong>
+              <span>${order.paymentStatus ? order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1) : 'Pending'}</span>
+            </div>
+            <div class="info-row">
+              <strong>Order Status:</strong>
+              <span>${order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Pending'}</span>
+            </div>
+          </div>
+
+          <div class="signature-section">
+            <div class="signature-box">
+              <div class="signature-line"></div>
+              <p>Delivery Person Signature</p>
+            </div>
+            <div class="signature-box">
+              <div class="signature-line"></div>
+              <p>Customer Signature</p>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>This is a computer-generated delivery voucher.</p>
+            <p>Thank you for choosing mk-ShopBD!</p>
+          </div>
+        </body>
+      </html>
+    `
+    
+    // Create and download PDF
+    const printWindow = window.open('', '_blank')
+    if (printWindow) {
+      printWindow.document.write(voucherContent)
+      printWindow.document.close()
+      
+      // Auto-print to PDF
+      setTimeout(() => {
+        printWindow.print()
+      }, 500)
     }
   }
 
@@ -143,7 +290,18 @@ export default function DashboardOrdersPage() {
                 </td>
                 <td className="px-4 py-3 text-gray-600">{new Date(o.createdAt).toLocaleDateString()}</td>
                 <td className="px-4 py-3 text-right">
-                  <Link href={`/dashboard/orders/${o.id}`} className="inline-flex items-center gap-1 p-2 text-blue-600 hover:bg-blue-50 rounded"><Eye className="w-4 h-4" /> View</Link>
+                  <div className="flex items-center gap-2 justify-end">
+                    <button
+                      onClick={() => downloadDeliveryVoucher(o)}
+                      className="inline-flex items-center gap-1 p-2 text-green-600 hover:bg-green-50 rounded"
+                      title="Download Delivery Voucher"
+                    >
+                      <Download className="w-4 h-4" /> Voucher
+                    </button>
+                    <Link href={`/dashboard/orders/${o.id}`} className="inline-flex items-center gap-1 p-2 text-blue-600 hover:bg-blue-50 rounded" title="View Order Details">
+                      <Eye className="w-4 h-4" /> View
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}

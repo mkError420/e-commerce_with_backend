@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import { generateOrderNumber } from '@/lib/order-number'
 
 const PaymentConfirmationContent = () => {
   const searchParams = useSearchParams()
@@ -26,12 +27,8 @@ const PaymentConfirmationContent = () => {
   useEffect(() => {
     setMounted(true)
     
-    // Generate order number in new format: ORD-last 2 digit of year + first 2 letter product name + 3 digit number
-    const currentYear = new Date().getFullYear()
-    const lastTwoDigitsYear = currentYear.toString().slice(-2)
-    const productName = 'PR' // Default product name (can be made dynamic)
-    const randomNumber = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-    const orderId = `ORD-${lastTwoDigitsYear}${productName}${randomNumber}`
+    // Use shared order number generation utility
+    const orderId = generateOrderNumber()
     const amount = searchParams?.get('amount') || '0'
     const items = searchParams?.get('items') || '0'
     const paymentMethod = searchParams?.get('method') || 'Card'
