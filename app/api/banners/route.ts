@@ -1,10 +1,14 @@
 import { NextRequest } from 'next/server'
+import { getDb, writeDb, generateId } from '@/lib/db'
+import { apiSuccess, apiError } from '@/lib/api-response'
 
 export async function GET() {
   try {
-    return Response.json({ message: 'Banners API working', timestamp: Date.now() })
+    const db = await getDb()
+    return apiSuccess(db.banners || [])
   } catch (error) {
-    return Response.json({ error: 'Failed to get banners' }, { status: 500 })
+    console.error('Error fetching banners:', error)
+    return apiError('Failed to fetch banners', 500)
   }
 }
 
@@ -18,16 +22,12 @@ export async function POST(req: NextRequest) {
     
     // Validate required fields
     if (!title || !subtitle || !description) {
-      return Response.json({ 
-        error: 'Title, subtitle, and description are required' 
-      }, { status: 400 })
+      return apiError('Title, subtitle, and description are required', 400)
     }
     
     // Validate image URL
     if (!image) {
-      return Response.json({ 
-        error: 'Image URL is required' 
-      }, { status: 400 })
+      return apiError('Image URL is required', 400)
     }
     
     // Basic URL validation
@@ -36,35 +36,36 @@ export async function POST(req: NextRequest) {
     } catch {
       // If it's not a valid URL, check if it's a local path
       if (!image.startsWith('/')) {
-        return Response.json({ 
-          error: 'Image URL must be a valid URL or start with /' 
-        }, { status: 400 })
+        return apiError('Image URL must be a valid URL or start with /', 400)
       }
     }
     
-    return Response.json({ 
-      success: true, 
-      data: {
-        id: Date.now().toString(),
-        title,
-        subtitle,
-        description,
-        image,
-        category: category || '',
-        backgroundColor: backgroundColor || 'from-shop_dark_green',
-        gradient: gradient || 'to-shop_light_green',
-        isActive: isActive !== false,
-        position: position || 0
-      }, 
-      message: 'Banner created successfully',
-      timestamp: Date.now()
-    })
+    const db = await getDb()
+    const banner = {
+      id: generateId(),
+      title,
+      subtitle,
+      description,
+      image,
+      category: category || '',
+      backgroundColor: backgroundColor || 'from-shop_dark_green',
+      gradient: gradient || 'to-shop_light_green',
+      isActive: isActive !== false,
+      position: position || 0
+    }
+    
+    // Initialize banners array if it doesn't exist
+    if (!db.banners) {
+      db.banners = []
+    }
+    
+    db.banners.push(banner)
+    await writeDb(db)
+    
+    return apiSuccess(banner, 201)
   } catch (error) {
     console.error('POST banners error:', error)
-    return Response.json({ 
-      error: 'Failed to create banner',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return apiError('Failed to create banner', 500)
   }
 }
 
@@ -73,18 +74,27 @@ export async function PUT(req: NextRequest) {
     const body = await req.json()
     console.log('PUT banners API called with:', body)
     
-    return Response.json({ 
-      success: true, 
-      data: body, 
-      message: 'Banner updated successfully',
-      timestamp: Date.now()
-    })
+    const { id, ...updateData } = body
+    
+    if (!id) {
+      return apiError('Banner ID is required', 400)
+    }
+    
+    const db = await getDb()
+    const bannerIndex = db.banners?.findIndex((banner: any) => banner.id === id)
+    
+    if (bannerIndex === -1) {
+      return apiError('Banner not found', 404)
+    }
+    
+    // Update the banner
+    db.banners[bannerIndex] = { ...db.banners[bannerIndex], ...updateData }
+    await writeDb(db)
+    
+    return apiSuccess(db.banners[bannerIndex])
   } catch (error) {
     console.error('PUT banners error:', error)
-    return Response.json({ 
-      error: 'Failed to update banner',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return apiError('Failed to update banner', 500)
   }
 }
 
@@ -94,17 +104,24 @@ export async function DELETE(req: NextRequest) {
     const id = url.searchParams.get('id')
     console.log('DELETE banners API called for id:', id)
     
-    return Response.json({ 
-      success: true, 
-      message: 'Banner deleted successfully',
-      id: id,
-      timestamp: Date.now()
-    })
+    if (!id) {
+      return apiError('Banner ID is required', 400)
+    }
+    
+    const db = await getDb()
+    const bannerIndex = db.banners?.findIndex((banner: any) => banner.id === id)
+    
+    if (bannerIndex === -1) {
+      return apiError('Banner not found', 404)
+    }
+    
+    // Remove the banner
+    db.banners.splice(bannerIndex, 1)
+    await writeDb(db)
+    
+    return apiSuccess({ message: 'Banner deleted successfully' })
   } catch (error) {
     console.error('DELETE banners error:', error)
-    return Response.json({ 
-      error: 'Failed to delete banner',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return apiError('Failed to delete banner', 500)
   }
 }

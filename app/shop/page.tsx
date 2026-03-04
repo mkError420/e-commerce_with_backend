@@ -126,8 +126,15 @@ const ShopPage = () => {
     const fetchBanners = async () => {
       try {
         const data = await api.banners.list()
-        setBanners(data)
         console.log('Banners fetched:', data)
+        
+        // Ensure we always have an array
+        if (Array.isArray(data)) {
+          setBanners(data)
+        } else {
+          console.warn('Banners API did not return an array, using empty array')
+          setBanners([])
+        }
       } catch (error) {
         console.error('Error fetching banners:', error)
         setBanners([]) // Use empty array if API fails
@@ -167,6 +174,13 @@ const ShopPage = () => {
     return []
   }, [banners])
 
+  // Create infinite loop slides by duplicating the array
+  const infiniteSlides = useMemo(() => {
+    if (heroSlides.length === 0) return []
+    // Duplicate slides for infinite loop effect
+    return [...heroSlides, ...heroSlides]
+  }, [heroSlides])
+
   // Auto-sliding functionality
   useEffect(() => {
     if (heroSlides.length > 0) {
@@ -184,11 +198,11 @@ const ShopPage = () => {
   }
 
   const goToNextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1 + heroSlides.length) % heroSlides.length)
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
   }
 
   const goToSlide = (index: number) => {
-    setCurrentSlide(index)
+    setCurrentSlide(index % heroSlides.length)
   }
 
   // Filter and sort products
@@ -305,81 +319,84 @@ const ShopPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Banner Carousel */}
-      <div className="relative overflow-hidden">
-        {/* Refresh Button */}
-        <button
-          onClick={refreshBanners}
-          className="absolute top-4 right-4 z-10 bg-white/80 text-gray-800 p-2 rounded-full shadow-lg hover:bg-white/90 transition-all duration-200"
-          title="Refresh Banners"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 15.357m15.356 2A8.001 8.001 0 014.582 15.357m15.356 2A8.001 8.001 0 004.582 15.357m15.356 2A8.001 8.001 0 004.582 15.357" />
-          </svg>
-        </button>
-        
-        <div className="flex transition-transform duration-500 ease-in-out">
-          {heroSlides.map((slide, index) => (
-            <div
-              key={slide.id}
-              className={`w-full flex-shrink-0 transition-all duration-500 ${
-                currentSlide === index ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              <div className="relative h-96 bg-cover bg-center" style={{ 
-                backgroundImage: `url(${slide.image})`,
-                backgroundColor: '#f3f4f6' // Add fallback background color
-              }}>
-                <div className={`absolute inset-0 bg-gradient-to-r ${slide.backgroundColor}/90 ${slide.gradient}/80 flex items-center justify-center px-8`}>
-                  <div className="text-center text-white">
-                    <h2 className="text-3xl font-bold mb-2">{slide.title}</h2>
-                    <p className="text-lg mb-4">{slide.subtitle}</p>
-                    <p className="text-base">{slide.description}</p>
-                    <button
-                      onClick={() => {
-                        setSelectedCategory([slide.category])
-                        setCurrentPage(1)
-                      }}
-                      className="mt-6 bg-white text-shop_dark_green px-8 py-3 rounded-lg hover:bg-shop_light_green transition-colors duration-200 font-medium"
-                    >
-                      Shop Now
-                    </button>
-                  </div>
-                </div>
+      <div className="relative w-full overflow-hidden" style={{ height: 'clamp(24rem, 50vw, 32rem)' }}>
+        {bannersLoading ? (
+          <div className="relative w-full bg-gray-200 animate-pulse" style={{ height: 'clamp(24rem, 50vw, 32rem)' }}>
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-300/90 to-gray-400/80 flex items-center justify-center">
+              <div className="text-center text-white">
+                <div className="h-8 bg-gray-400 rounded w-3/4 mx-auto mb-4"></div>
+                <div className="h-4 bg-gray-400 rounded w-1/2 mx-auto mb-2"></div>
+                <div className="h-3 bg-gray-400 rounded w-2/3 mx-auto"></div>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* Carousel Navigation */}
-        <button
-          onClick={goToPreviousSlide}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-shop_dark_green/80 text-white p-2 rounded-full shadow-lg hover:bg-shop_dark_green transition-all duration-200 z-10"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7 7z" />
-          </svg>
-        </button>
-        <button
-          onClick={goToNextSlide}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-shop_dark_green/80 text-white p-2 rounded-full shadow-lg hover:bg-shop_dark_green transition-all duration-200 z-10"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7z" />
-          </svg>
-        </button>
-
-        {/* Carousel Indicators */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
-          {heroSlides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                currentSlide === index ? 'bg-white' : 'bg-white/50'
-              }`}
-            />
-          ))}
-        </div>
+          </div>
+        ) : heroSlides.length > 0 ? (
+          <>
+            <div className="relative w-full" style={{ height: 'clamp(24rem, 50vw, 32rem)' }}>
+              <div 
+                className="flex transition-transform duration-500 ease-in-out h-full"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {infiniteSlides.map((slide, index) => (
+                  <div
+                    key={`${slide.id}-${index}`}
+                    className="w-full flex-shrink-0"
+                  >
+                    <div className="relative h-full flex">
+                      {/* Left Side - Content */}
+                      <div className={`w-1/4 h-full bg-gradient-to-r ${slide.backgroundColor} ${slide.gradient} flex items-center justify-center px-4`}>
+                        <div className="text-center text-white">
+                          <h2 className="text-xl md:text-2xl font-bold mb-2">{slide.title}</h2>
+                          <p className="text-sm md:text-base mb-3">{slide.subtitle}</p>
+                          <p className="text-xs md:text-sm mb-4 opacity-90 hidden md:block">{slide.description}</p>
+                          <button
+                            onClick={() => {
+                              setSelectedCategory([slide.category])
+                              setCurrentPage(1)
+                            }}
+                            className="bg-white text-shop_dark_green px-4 py-2 rounded-lg hover:bg-shop_light_green transition-all duration-200 font-medium hover:scale-105 hover:shadow-lg text-sm"
+                          >
+                            Shop Now
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Right Side - Banner Image */}
+                      <div className="w-3/4 h-full relative">
+                        <img 
+                          src={slide.image} 
+                          alt={slide.title}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to placeholder if image fails
+                            const target = e.target as HTMLImageElement
+                            target.src = '/api/placeholder/1920/600'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Empty State */
+          <div className="relative w-full bg-gradient-to-r from-shop_dark_green to-shop_light_green" style={{ height: 'clamp(24rem, 50vw, 32rem)' }}>
+            <div className="absolute inset-0 flex items-center justify-center px-8">
+              <div className="text-center text-white">
+                <h2 className="text-3xl font-bold mb-4">Welcome to Our Shop</h2>
+                <p className="text-lg mb-6">Discover amazing products and great deals</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-white text-shop_dark_green px-8 py-3 rounded-lg hover:bg-shop_light_green transition-colors duration-200 font-medium"
+                >
+                  Refresh Banners
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <Container className="py-8">

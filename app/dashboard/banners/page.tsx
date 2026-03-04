@@ -62,23 +62,35 @@ export default function BannersPage() {
   const fetchBanners = async () => {
     try {
       const data = await api.banners.list()
-      setBanners(data)
+      console.log('Banners API response:', data)
+      
+      // Ensure we always have an array
+      if (Array.isArray(data)) {
+        setBanners(data)
+      } else {
+        console.warn('Banners API did not return an array, using empty array')
+        setBanners([])
+      }
     } catch (error) {
       console.error('Error fetching banners:', error)
       // For now, create default banners from categories
-      const defaultBanners = categories.slice(0, 4).map((category, index) => ({
-        id: category.id,
-        title: `${category.title} Collection`,
-        subtitle: `Explore our ${category.title.toLowerCase()} products`,
-        description: `Discover amazing deals on ${category.title.toLowerCase()} products`,
-        image: '/api/placeholder/1920/600', // Use placeholder API
-        category: category.slug,
-        backgroundColor: index === 0 ? 'from-shop_dark_green' : index === 1 ? 'from-blue-600' : index === 2 ? 'from-purple-600' : 'from-orange-600',
-        gradient: index === 0 ? 'to-shop_light_green' : index === 1 ? 'to-blue-500' : index === 2 ? 'to-pink-500' : 'to-orange-500',
-        isActive: true,
-        position: index
-      }))
-      setBanners(defaultBanners)
+      if (categories && categories.length > 0) {
+        const defaultBanners = categories.slice(0, 4).map((category, index) => ({
+          id: category.id,
+          title: `${category.title} Collection`,
+          subtitle: `Explore our ${category.title.toLowerCase()} products`,
+          description: `Discover amazing deals on ${category.title.toLowerCase()} products`,
+          image: '/api/placeholder/1920/600', // Use placeholder API
+          category: category.slug,
+          backgroundColor: index === 0 ? 'from-shop_dark_green' : index === 1 ? 'from-blue-600' : index === 2 ? 'from-purple-600' : 'from-orange-600',
+          gradient: index === 0 ? 'to-shop_light_green' : index === 1 ? 'to-blue-500' : index === 2 ? 'to-pink-500' : 'to-orange-500',
+          isActive: true,
+          position: index
+        }))
+        setBanners(defaultBanners)
+      } else {
+        setBanners([])
+      }
     } finally {
       setLoading(false)
     }

@@ -152,5 +152,42 @@
   ],
   "orders": [],
   "users": [],
-  "banners": []
+  "banners": [
+    {
+      "id": "mmbq1tll3bybgxwg3wd",
+      "title": "Banner 01",
+      "subtitle": "sjdhsdhb",
+      "description": "fvhfgjfhvfgj dbfhsaslkfj dsvfjksh",
+      "image": "https://img.freepik.com/free-vector/gradient-shopping-discount-horizontal-sale-banner_23-2150321996.jpg?semt=ais_rp_progressive&w=740&q=80",
+      "category": "electronics",
+      "backgroundColor": "from-shop_dark_green",
+      "gradient": "to-shop_light_green",
+      "isActive": true,
+      "position": 0
+    },
+    {
+      "id": "mmbq38nq94gim4dkyng",
+      "title": "Banner 02",
+      "subtitle": "Two banner running",
+      "description": "Two banner runningTwo banner runningTwo banner running",
+      "image": "https://img.freepik.com/free-psd/black-friday-super-sale-facebook-cover-banner-template_120329-5177.jpg?semt=ais_rp_progressive&w=740&q=80",
+      "category": "electronics",
+      "backgroundColor": "from-shop_dark_green",
+      "gradient": "to-shop_light_green",
+      "isActive": true,
+      "position": 0
+    },
+    {
+      "id": "mmbq8n7tksxeol79v1d",
+      "title": "Banner 03",
+      "subtitle": "Ecommerce Banner",
+      "description": "Ecommerce Banner Vector ImagesEcommerce Banner Vector ImagesEcommerce Banner Vector Images",
+      "image": "https://static.vecteezy.com/system/resources/thumbnails/004/707/493/small/online-shopping-on-phone-buy-sell-business-digital-web-banner-application-money-advertising-payment-ecommerce-illustration-search-vector.jpg",
+      "category": "electronics",
+      "backgroundColor": "from-shop_dark_green",
+      "gradient": "to-shop_light_green",
+      "isActive": true,
+      "position": 0
+    }
+  ]
 }
