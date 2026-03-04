@@ -1,69 +1,24 @@
 "use client"
 
 import React, { useEffect, useRef } from 'react'
-import Glide from '@glidejs/glide'
-import '@glidejs/glide/dist/css/glide.core.min.css'
-import '@glidejs/glide/dist/css/glide.theme.min.css'
 
 const BrandPartners = () => {
-  const glideRef = useRef<HTMLDivElement>(null)
+  const tickerRef = useRef<HTMLDivElement>(null)
 
   const brands = [
-    { name: 'TechCorp', logo: '/api/placeholder/120/60' },
-    { name: 'StyleHub', logo: '/api/placeholder/120/60' },
-    { name: 'HomeLiving', logo: '/api/placeholder/120/60' },
-    { name: 'GameZone', logo: '/api/placeholder/120/60' },
-    { name: 'HealthPlus', logo: '/api/placeholder/120/60' },
-    { name: 'BookWorld', logo: '/api/placeholder/120/60' },
-    { name: 'PhotoPro', logo: '/api/placeholder/120/60' },
-    { name: 'Fashionista', logo: '/api/placeholder/120/60' },
-    { name: 'SportsPlus', logo: '/api/placeholder/120/60' },
-    { name: 'FoodieDelight', logo: '/api/placeholder/120/60' },
-    { name: 'TravelWorld', logo: '/api/placeholder/120/60' },
-    { name: 'PetCare', logo: '/api/placeholder/120/60' }
+    { name: 'Bata', logo: '/api/placeholder/120/60' },
+    { name: 'Yellow Fashion', logo: '/api/placeholder/120/60' },
+    { name: 'Easy Fashion', logo: '/api/placeholder/120/60' },
+    { name: 'Apex', logo: '/api/placeholder/120/60' },
+    { name: 'Aarong', logo: '/api/placeholder/120/60' },
+    { name: 'Diamond World', logo: '/api/placeholder/120/60' }
   ]
 
+  // Duplicate brands for seamless scrolling
+  const duplicatedBrands = [...brands, ...brands]
+
   useEffect(() => {
-    if (glideRef.current) {
-      const glide = new Glide(glideRef.current, {
-        type: 'carousel',
-        perView: 4,
-        gap: 24,
-        autoplay: 2000,
-        hoverpause: false,
-        animationDuration: 1000,
-        animationTimingFunc: 'linear',
-        rewind: true,
-        bound: false,
-        startAt: 0,
-        dragThreshold: false,
-        touchRatio: 0.5,
-        breakpoints: {
-          1024: {
-            perView: 4,
-            gap: 24
-          },
-          768: {
-            perView: 3,
-            gap: 20
-          },
-          640: {
-            perView: 2,
-            gap: 16
-          },
-          480: {
-            perView: 1,
-            gap: 12
-          }
-        }
-      })
-
-      glide.mount()
-
-      return () => {
-        glide.destroy()
-      }
-    }
+    // Ticker animation is handled by CSS animation
   }, [])
 
   const BrandCard = ({ brand }: { brand: typeof brands[0] }) => {
@@ -81,7 +36,7 @@ const BrandPartners = () => {
   }
 
   return (
-    <section className='py-16 bg-white'>
+    <section className='py-16 bg-white overflow-hidden'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         {/* Section Header */}
         <div className='text-center mb-12'>
@@ -93,17 +48,25 @@ const BrandPartners = () => {
           </p>
         </div>
 
-        {/* Glide.js Carousel */}
+        {/* Ticker Container */}
         <div className='relative'>
-          <div ref={glideRef} className='glide'>
-            <div className='glide__track' data-glide-el='track'>
-              <div className='glide__slides'>
-                {brands.map((brand, index) => (
-                  <div key={index} className='glide__slide'>
-                    <BrandCard brand={brand} />
-                  </div>
-                ))}
-              </div>
+          <div className='overflow-hidden'>
+            <div 
+              ref={tickerRef}
+              className='flex animate-ticker'
+              style={{
+                animation: 'ticker 30s linear infinite',
+                width: 'fit-content'
+              }}
+            >
+              {duplicatedBrands.map((brand, index) => (
+                <div 
+                  key={`${brand.name}-${index}`} 
+                  className='flex-shrink-0 w-64 px-4'
+                >
+                  <BrandCard brand={brand} />
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -127,6 +90,22 @@ const BrandPartners = () => {
           </a>
         </div>
       </div>
+
+      {/* CSS for ticker animation */}
+      <style jsx>{`
+        @keyframes ticker {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+
+        .animate-ticker:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </section>
   )
 }
