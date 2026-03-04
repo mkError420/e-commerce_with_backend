@@ -104,7 +104,7 @@ export const api = {
     list: () => fetchApi<any[]>('/orders'),
     get: (id: string) => fetchApi<any>(`/orders?id=${encodeURIComponent(id)}`),
     create: (data: any) => fetchApi<any>('/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
-    update: (id: string, data: any) => fetchApi<any>(`/orders/${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+    update: (id: string, data: any) => fetchApi<any>(`/orders?id=${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
   },
   auth: {
     login: (email: string, password: string) =>

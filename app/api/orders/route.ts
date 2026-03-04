@@ -28,6 +28,31 @@ export async function GET(req: NextRequest) {
   }
 }
 
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const url = new URL(req.url)
+    const id = url.searchParams.get('id')
+    
+    if (!id) {
+      return apiError('Order ID is required', 400)
+    }
+    
+    const db = await getDb()
+    const idx = db.orders.findIndex((order: any) => order.id === id)
+    
+    if (idx === -1) {
+      return apiError('Order not found', 404)
+    }
+    
+    db.orders[idx] = { ...db.orders[idx], ...body, id: db.orders[idx].id }
+    await writeDb(db)
+    return apiSuccess(db.orders[idx])
+  } catch (error) {
+    return apiError('Failed to update order', 500)
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -38,6 +63,7 @@ export async function POST(req: NextRequest) {
       id: generateId(),
       orderNumber: generateOrderNumber(),
       status: 'pending',
+      paymentStatus: 'pending',
       name,
       email,
       phone,

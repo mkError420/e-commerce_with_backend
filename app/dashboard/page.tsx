@@ -128,19 +128,19 @@ export default function DashboardPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
                           <p className="text-gray-600">Name:</p>
-                          <p className="font-medium text-gray-900">{order.customer?.name || 'Unknown'}</p>
+                          <p className="font-medium text-gray-900">{order.name || 'Unknown'}</p>
                         </div>
                         <div>
                           <p className="text-gray-600">Email:</p>
-                          <p className="font-medium text-gray-900">{order.customer?.email || 'Not provided'}</p>
+                          <p className="font-medium text-gray-900">{order.email || 'Not provided'}</p>
                         </div>
                         <div>
                           <p className="text-gray-600">Phone:</p>
-                          <p className="font-medium text-gray-900">{order.customer?.phone || 'Not provided'}</p>
+                          <p className="font-medium text-gray-900">{order.phone || 'Not provided'}</p>
                         </div>
                         <div>
                           <p className="text-gray-600">Address:</p>
-                          <p className="font-medium text-gray-900">{order.customer?.address || 'Not provided'}</p>
+                          <p className="font-medium text-gray-900">{order.address || 'Not provided'}</p>
                         </div>
                       </div>
                     </div>
@@ -156,21 +156,22 @@ export default function DashboardPage() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div>
                           <p className="text-gray-600">Method:</p>
-                          <p className="font-medium text-gray-900">{order.payment?.method || 'Cash on Delivery'}</p>
+                          <p className="font-medium text-gray-900">{order.paymentMethod || 'Cash on Delivery'}</p>
                         </div>
                         <div>
                           <p className="text-gray-600">Status:</p>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            order.payment?.status === 'paid' ? 'bg-green-100 text-green-700' :
-                            order.payment?.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-gray-100 text-gray-700'
+                            order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
+                            order.paymentStatus === 'failed' ? 'bg-red-100 text-red-700' :
+                            order.paymentStatus === 'refunded' ? 'bg-gray-100 text-gray-700' :
+                            'bg-yellow-100 text-yellow-700'
                           }`}>
-                            {order.payment?.status || 'Pending'}
+                            {order.paymentStatus ? order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1) : 'Pending'}
                           </span>
                         </div>
                         <div>
                           <p className="text-gray-600">Transaction ID:</p>
-                          <p className="font-medium text-gray-900">{order.payment?.transactionId || 'N/A'}</p>
+                          <p className="font-medium text-gray-900">{order.paymentInfo || 'N/A'}</p>
                         </div>
                       </div>
                     </div>

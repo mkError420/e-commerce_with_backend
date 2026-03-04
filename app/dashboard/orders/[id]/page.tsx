@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Save } from 'lucide-react'
 import { api } from '@/lib/api-client'
 
 export default function OrderDetailPage() {
@@ -11,8 +11,38 @@ export default function OrderDetailPage() {
   const id = params.id as string
   const [order, setOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [updating, setUpdating] = useState(false)
+  const [newStatus, setNewStatus] = useState('')
 
-  useEffect(() => { api.orders.get(id).then(setOrder).finally(() => setLoading(false)) }, [id])
+  const statusOptions = [
+    { value: 'pending', label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'confirmed', label: 'Confirmed', color: 'bg-blue-100 text-blue-800' },
+    { value: 'processing', label: 'Processing', color: 'bg-purple-100 text-purple-800' },
+    { value: 'shipped', label: 'Shipped', color: 'bg-indigo-100 text-indigo-800' },
+    { value: 'delivered', label: 'Delivered', color: 'bg-green-100 text-green-800' },
+    { value: 'cancelled', label: 'Cancelled', color: 'bg-red-100 text-red-800' }
+  ]
+
+  useEffect(() => { 
+    api.orders.get(id).then((orderData) => {
+      setOrder(orderData)
+      setNewStatus(orderData.status || 'pending')
+    }).finally(() => setLoading(false)) 
+  }, [id])
+
+  const handleStatusUpdate = async () => {
+    if (!order || newStatus === order.status) return
+    
+    setUpdating(true)
+    try {
+      const updatedOrder = await api.orders.update(order.id, { status: newStatus })
+      setOrder(updatedOrder)
+    } catch (error) {
+      console.error('Failed to update order status:', error)
+    } finally {
+      setUpdating(false)
+    }
+  }
 
   if (loading || !order) return <div className="animate-pulse h-64 bg-gray-200 rounded" />
   return (
@@ -68,13 +98,48 @@ export default function OrderDetailPage() {
         </div>
         
         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">
-            <span className="font-medium">Payment Status:</span> 
-            <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Pending</span>
-          </p>
-          <p className="text-sm text-gray-600 mt-1">
-            <span className="font-medium">Order Date:</span> {new Date(order.createdAt).toLocaleDateString()}
-          </p>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm text-gray-600">
+                <span className="font-medium">Current Status:</span> 
+                <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                  statusOptions.find(s => s.value === order.status)?.color || 'bg-gray-100 text-gray-800'
+                }`}>
+                  {statusOptions.find(s => s.value === order.status)?.label || order.status}
+                </span>
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                <span className="font-medium">Order Date:</span> {new Date(order.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+          
+          <div className="border-t pt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Update Order Status
+            </label>
+            <div className="flex gap-3">
+              <select
+                value={newStatus}
+                onChange={(e) => setNewStatus(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {statusOptions.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleStatusUpdate}
+                disabled={updating || newStatus === order.status}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                {updating ? 'Updating...' : 'Update Status'}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
