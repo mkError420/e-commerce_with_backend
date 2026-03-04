@@ -1,9 +1,12 @@
 import { NextRequest } from 'next/server'
-import { getDb, writeDb, generateId } from '@/lib/db'
+import { getDb, writeDb, generateId, clearCache } from '@/lib/db'
 import { apiSuccess, apiError } from '@/lib/api-response'
 
 export async function GET() {
+  console.log('Categories API: Starting request')
   const db = await getDb()
+  console.log('Categories API: Database loaded, categories count:', db.categories?.length)
+  console.log('Categories API: Categories data:', db.categories)
   return apiSuccess(db.categories)
 }
 
@@ -24,6 +27,7 @@ export async function POST(req: NextRequest) {
     }
     db.categories.push(category)
     await writeDb(db)
+    clearCache() // Clear cache after write
     return apiSuccess(category, 201)
   } catch {
     return apiError('Failed to create category', 500)
@@ -57,6 +61,7 @@ export async function PUT(req: NextRequest) {
     } as any
     
     await writeDb(db)
+    clearCache() // Clear cache after write
     return apiSuccess(db.categories[categoryIndex])
   } catch (error) {
     console.error('Error updating category:', error)
@@ -79,7 +84,7 @@ export async function DELETE(req: NextRequest) {
     // Remove category and any subcategories
     db.categories = db.categories.filter((cat: any) => cat.id !== id && cat.parentId !== id)
     await writeDb(db)
-    
+    clearCache() // Clear cache after write
     return apiSuccess({ message: 'Category deleted successfully' })
   } catch {
     return apiError('Failed to delete category', 500)

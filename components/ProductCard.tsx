@@ -32,8 +32,15 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
   const [showQuickView, setShowQuickView] = useState(false)
   const discountPercentage = Math.round(((product.originalPrice || product.price) - product.price) / (product.originalPrice || product.price) * 100)
   
-  // Handle both number and string IDs
-  const productId = typeof product.id === 'string' ? parseInt(product.id) : product.id
+  // Handle both number and string IDs - keep string IDs as they are
+  const productId = product.id
+  
+  // Skip rendering if product has no ID
+  if (!productId) {
+    console.error('ProductCard: Product has no ID, skipping:', product.name, 'ID:', product.id)
+    return null
+  }
+  
   console.log('ProductCard rendering for product:', product.name, 'ID:', productId, 'Type:', typeof product.id) // Debug log
 
   // Function to get image URL without cache-busting for SSR consistency
@@ -44,6 +51,12 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
   }
   
   const handleAddToCart = () => {
+    // Double-check productId before adding to cart
+    if (!productId) {
+      console.error('Cannot add to cart: Invalid product ID', { product, productId })
+      return
+    }
+    
     console.log('Add to Cart button clicked for product:', product.name, 'ID:', productId) // Debug log
     console.log('Product object:', product) // Debug log
     const productToAdd = {

@@ -62,13 +62,21 @@ const GlobalSlideCart = () => {
             </div>
           ) : (
             <div className='space-y-4'>
-              {cartItems.map((item) => {
-                const currentItem = item.itemType === 'product' ? item.product : item.deal
-                const itemId = item.itemType === 'product' ? item.product?.id : item.deal?.id
-                
-                console.log('GlobalSlideCart item:', { item, itemId, currentItem }) // Debug log
-                
-                return (
+              {cartItems.filter(item => {
+    // Additional client-side validation to filter out invalid items
+    if (!item || !item.itemType) {
+      console.error('Filtering out invalid cart item:', item)
+      return false
+    }
+    const itemId = item.itemType === 'product' ? item.product?.id : item.deal?.id
+    return itemId !== undefined && itemId !== null && itemId !== ''
+  }).map((item) => {
+    const currentItem = item.itemType === 'product' ? item.product : item.deal
+    const itemId = item.itemType === 'product' ? item.product?.id : item.deal?.id
+    
+    console.log('GlobalSlideCart item:', { item, itemId, currentItem }) // Debug log
+    
+    return (
                 <div key={`${item.itemType}-${itemId}`} className='flex gap-4 p-4 bg-gray-50 rounded-lg'>
                   {/* Product Image */}
                   <div className='w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 relative overflow-hidden'>
@@ -100,10 +108,13 @@ const GlobalSlideCart = () => {
                           e.preventDefault()
                           e.stopPropagation()
                           console.log('GlobalSlideCart Delete button clicked:', { itemId, itemType: item.itemType })
-                          if (itemId) {
-                            removeFromCart(itemId, item.itemType)
+                          
+                          // Double-check itemId before attempting deletion
+                          const deleteItemId = item.itemType === 'product' ? item.product?.id : item.deal?.id
+                          if (deleteItemId) {
+                            removeFromCart(deleteItemId, item.itemType)
                           } else {
-                            console.error('Cannot delete item: itemId is undefined')
+                            console.error('Cannot delete item: itemId is undefined', { item, deleteItemId })
                           }
                         }}
                         onMouseDown={(e) => console.log('Delete button mousedown')}
@@ -133,11 +144,14 @@ const GlobalSlideCart = () => {
                             e.preventDefault()
                             e.stopPropagation()
                             console.log('GlobalSlideCart Minus button clicked:', { itemId, currentQuantity: item.quantity, itemType: item.itemType })
-                            if (itemId) {
+                            
+                            // Double-check itemId before attempting update
+                            const updateItemId = item.itemType === 'product' ? item.product?.id : item.deal?.id
+                            if (updateItemId) {
                               const newQuantity = Math.max(1, item.quantity - 1)
-                              updateQuantity(itemId, newQuantity, item.itemType)
+                              updateQuantity(updateItemId, newQuantity, item.itemType)
                             } else {
-                              console.error('Cannot update quantity: itemId is undefined')
+                              console.error('Cannot update quantity: itemId is undefined', { item, updateItemId })
                             }
                           }}
                           onMouseDown={(e) => console.log('Minus button mousedown')}
@@ -154,10 +168,13 @@ const GlobalSlideCart = () => {
                             e.preventDefault()
                             e.stopPropagation()
                             console.log('GlobalSlideCart Plus button clicked:', { itemId, currentQuantity: item.quantity, itemType: item.itemType })
-                            if (itemId) {
-                              updateQuantity(itemId, item.quantity + 1, item.itemType)
+                            
+                            // Double-check itemId before attempting update
+                            const updateItemId = item.itemType === 'product' ? item.product?.id : item.deal?.id
+                            if (updateItemId) {
+                              updateQuantity(updateItemId, item.quantity + 1, item.itemType)
                             } else {
-                              console.error('Cannot update quantity: itemId is undefined')
+                              console.error('Cannot update quantity: itemId is undefined', { item, updateItemId })
                             }
                           }}
                           onMouseDown={(e) => console.log('Plus button mousedown')}

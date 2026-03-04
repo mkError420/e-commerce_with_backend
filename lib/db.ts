@@ -16,6 +16,7 @@ export interface Product {
   description?: string
   size?: string
   stock?: number
+  featured?: boolean
 }
 
 export interface Category {
@@ -117,12 +118,21 @@ export interface DbSchema {
 let cachedDb: DbSchema | null = null
 
 async function readDb(): Promise<DbSchema> {
-  if (cachedDb) return cachedDb
+  if (cachedDb) {
+    console.log('DB: Returning cached database with', cachedDb.products.length, 'products')
+    return cachedDb
+  }
   try {
+    console.log('DB: Reading from file:', DB_PATH)
     const data = await fs.readFile(DB_PATH, 'utf-8')
-    cachedDb = JSON.parse(data)
+    console.log('DB: Raw data length:', data.length)
+    const parsed = JSON.parse(data)
+    console.log('DB: Parsed database with', parsed.products?.length || 0, 'products')
+    console.log('DB: Parsed database with', parsed.categories?.length || 0, 'categories')
+    cachedDb = parsed
     return cachedDb!
   } catch (err) {
+    console.error('DB: Error reading database:', err)
     cachedDb = {
       products: [],
       categories: [],
@@ -144,6 +154,11 @@ export async function writeDb(data: DbSchema): Promise<void> {
 
 export async function getDb(): Promise<DbSchema> {
   return readDb()
+}
+
+export function clearCache(): void {
+  console.log('DB: Clearing cache')
+  cachedDb = null
 }
 
 export function generateId(): string {

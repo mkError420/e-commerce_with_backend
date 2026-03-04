@@ -1,16 +1,15 @@
 import React from 'react'
 import Link from 'next/link'
 import ProductCard from './ProductCard'
-import { productsData } from '@/constants/data'
 
 async function getProducts() {
   try {
     const base = process.env.NEXTAUTH_URL || 'http://localhost:3000'
     const res = await fetch(`${base}/api/products`, { next: { revalidate: 60 } })
     const json = await res.json()
-    return json?.data?.length ? json.data : productsData
+    return json?.data || []
   } catch {
-    return productsData
+    return []
   }
 }
 
@@ -30,11 +29,23 @@ const FeaturedProducts = async () => {
         </div>
 
         {/* Products Grid */}
-        <div className='grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8'>
-          {(products.slice(0, 8) || []).map((product: any) => (
-            <ProductCard key={product.id} product={product} viewMode="grid" />
-          ))}
-        </div>
+        {products.length > 0 ? (
+          <div className='grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8'>
+            {products.slice(0, 8).map((product: any) => (
+              <ProductCard key={product.id} product={product} viewMode="grid" />
+            ))}
+          </div>
+        ) : (
+          <div className='text-center py-16'>
+            <div className='text-gray-400 text-6xl mb-4'>📦</div>
+            <h3 className='text-xl font-semibold text-gray-900 mb-2'>
+              No featured products available
+            </h3>
+            <p className='text-gray-600'>
+              Add products through the Admin Dashboard to see them here.
+            </p>
+          </div>
+        )}
 
         {/* View All Button */}
         <div className='text-center mt-8 sm:mt-10 md:mt-12'>

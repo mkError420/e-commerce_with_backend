@@ -27,68 +27,44 @@ const ShopPage = () => {
   console.log('Categories data:', categories)
   console.log('Categories loading:', categoriesLoading)
   
-  // Fallback categories if API fails
+  // Fallback categories for testing
   const fallbackCategories = [
     {
-      id: 'electronics',
+      id: 'mmbhu02jplyj1uufjg',
       title: 'Electronics',
       slug: 'electronics',
       href: 'electronics',
+      icon: '',
       subcategories: [
         {
-          id: 'smartphones-accessories',
+          id: 'mmbhur2t2rzmhlxjvg8',
           title: 'Smartphones & Accessories',
-          slug: 'smartphones-accessories',
-          href: 'smartphones-accessories'
-        },
-        {
-          id: 'laptops-computers',
-          title: 'Laptops & Computers',
-          slug: 'laptops-computers',
-          href: 'laptops-computers'
-        }
-      ]
-    },
-    {
-      id: 'fashion',
-      title: 'Fashion',
-      slug: 'fashion',
-      href: 'fashion',
-      subcategories: [
-        {
-          id: 'mens-clothing',
-          title: "Men's Clothing",
-          slug: 'mens-clothing',
-          href: 'mens-clothing'
-        },
-        {
-          id: 'womens-clothing',
-          title: "Women's Clothing",
-          slug: 'womens-clothing',
-          href: 'womens-clothing'
+          slug: 'smartphones-&-accessories',
+          href: 'smartphones-&-accessories',
+          icon: ''
         }
       ]
     }
   ]
   
-  // Use API categories from dashboard first, fallback only if completely empty
+  // Use only API categories from dashboard, fallback to hardcoded data
   const categoriesToUse = useMemo(() => {
     if (categories && categories.length > 0) {
       return categories;
     }
-    console.warn('No categories from API, using fallback categories');
+    console.warn('No categories from API, using fallback data');
     return fallbackCategories;
   }, [categories]);
   
   // Debug: Log source of categories
-  console.log('Using categories from:', categories && categories.length > 0 ? 'Dashboard (API)' : 'Hardcoded fallback')
+  console.log('Using categories from:', categories && categories.length > 0 ? 'Dashboard (API)' : 'None available')
   console.log('Categories count:', categoriesToUse.length)
   
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState<string[]>(['all'])
   const [selectedRatings, setSelectedRatings] = useState<number[]>([])
   const [selectedSizes, setSelectedSizes] = useState<string[]>([])
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 })
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 200000 })
 
   // Transform categories for FilterSidebar with proper subcategory structure and real counts
   const transformedCategories = useMemo(() => {
@@ -126,41 +102,20 @@ const ShopPage = () => {
     { name: 'Daily Deal', slug: 'daily', icon: '' }
   ]
 
-  // Fetch products from API with fallback
+  // Fetch products from API
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        // Fetch all products first to get featured products from all categories
         const data = await api.products.list()
         setProducts(data)
+        
+        // Also fetch featured products to ensure we have all category products marked as featured
+        const featuredData = await api.products.list({ featured: 'true' })
+        console.log('Featured products from API:', featuredData)
       } catch (error) {
         console.error('Error fetching products:', error)
-        // Fallback to hardcoded products if API fails
-        setProducts([
-          {
-            id: 1,
-            name: 'Wireless Bluetooth Headphones',
-            price: 89.99,
-            originalPrice: 149.99,
-            image: '/images/products/product_1.png',
-            rating: 4.5,
-            reviews: 128,
-            badge: 'Best Seller',
-            category: 'Electronics',
-            description: 'Premium wireless headphones with noise cancellation'
-          },
-          {
-            id: 2,
-            name: 'Smart Watch Pro',
-            price: 199.99,
-            originalPrice: 299.99,
-            image: '/images/products/product_2.png',
-            rating: 4.8,
-            reviews: 89,
-            badge: 'New',
-            category: 'Electronics',
-            description: 'Advanced smartwatch with health tracking features'
-          }
-        ])
+        setProducts([]) // Use empty array if API fails
       }
     }
     fetchProducts()
@@ -175,26 +130,13 @@ const ShopPage = () => {
         console.log('Banners fetched:', data)
       } catch (error) {
         console.error('Error fetching banners:', error)
-        // Fallback to category-based banners if API fails
-        if (categoriesToUse.length > 0) {
-          const fallbackBanners = categoriesToUse.slice(0, 4).map((category, index) => ({
-            id: category.id,
-            title: `${category.title} Collection`,
-            subtitle: `Explore our ${category.title.toLowerCase()} products`,
-            description: `Discover amazing deals on ${category.title.toLowerCase()} products`,
-            image: '/api/placeholder/1920/600',
-            category: category.slug,
-            backgroundColor: index === 0 ? 'from-shop_dark_green' : index === 1 ? 'from-blue-600' : index === 2 ? 'from-purple-600' : 'from-orange-600',
-            gradient: index === 0 ? 'to-shop_light_green' : index === 1 ? 'to-blue-500' : index === 2 ? 'to-pink-500' : 'to-orange-500'
-          }))
-          setBanners(fallbackBanners)
-        }
+        setBanners([]) // Use empty array if API fails
       } finally {
         setBannersLoading(false)
       }
     }
     fetchBanners()
-  }, [categoriesToUse])
+  }, [])
 
   // Add refresh function for manual banner refresh
   const refreshBanners = async () => {
@@ -210,32 +152,20 @@ const ShopPage = () => {
     }
   }
 
-  // Hero carousel data (using banners from Admin Dashboard)
+  // Hero carousel data (using banners from Admin Dashboard only)
   const heroSlides = useMemo(() => {
     console.log('Current banners data:', banners)
-    console.log('Categories to use:', categoriesToUse)
     
-    // Use banners if available, otherwise fallback to categories
+    // Use banners if available, otherwise return empty array
     if (banners.length > 0) {
       const activeBanners = banners.filter(banner => banner.isActive).slice(0, 4)
       console.log('Active banners:', activeBanners)
       return activeBanners
     }
     
-    // Fallback to categories if no banners
-    const fallbackBanners = categoriesToUse.slice(0, 4).map((category, index) => ({
-      id: category.id,
-      title: `${category.title} Collection`,
-      subtitle: `Explore our ${category.title.toLowerCase()} products`,
-      description: `Discover amazing deals on ${category.title.toLowerCase()} products`,
-      image: '/api/placeholder/1920/600',
-      category: category.slug,
-      backgroundColor: index === 0 ? 'from-shop_dark_green' : index === 1 ? 'from-blue-600' : index === 2 ? 'from-purple-600' : 'from-orange-600',
-      gradient: index === 0 ? 'to-shop_light_green' : index === 1 ? 'to-blue-500' : index === 2 ? 'to-pink-500' : 'to-orange-500'
-    }))
-    console.log('Fallback banners:', fallbackBanners)
-    return fallbackBanners
-  }, [banners, categoriesToUse])
+    console.log('No banners available')
+    return []
+  }, [banners])
 
   // Auto-sliding functionality
   useEffect(() => {
@@ -264,30 +194,53 @@ const ShopPage = () => {
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
     console.log('=== FILTERING DEBUG ===')
+    console.log('Total products available:', products.length)
     console.log('Selected categories:', selectedCategory)
-    console.log('Available products:', products.map(p => ({ name: p.name, category: p.category })))
-    console.log('Transformed categories:', transformedCategories)
+    console.log('Search term:', searchTerm)
+    console.log('Price range:', priceRange)
+    
+    // Simple filter first - just check if products exist
+    if (products.length === 0) {
+      console.log('No products to filter')
+      return []
+    }
     
     let filtered = products.filter(product => {
+      console.log('Filtering product:', product.name, 'category:', product.category)
+      
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.category?.toLowerCase().includes(searchTerm.toLowerCase())
       
       // Enhanced category filtering to handle both main categories and subcategories
       let matchesCategory = selectedCategory.includes('all')
+      console.log('Product:', product.name, 'matchesCategory (all check):', matchesCategory, 'selectedCategory:', selectedCategory)
+      
       if (!matchesCategory) {
         matchesCategory = selectedCategory.some(selectedCatId => {
           console.log('Checking category ID:', selectedCatId)
+          
           // Find the selected category by ID in our transformed categories
           const selectedMainCat = transformedCategories.find(cat => cat.id === selectedCatId)
           console.log('Found main category:', selectedMainCat)
+          
           if (selectedMainCat) {
             // Check if product matches main category name OR any subcategory name
-            const mainMatch = product.category?.toLowerCase() === selectedMainCat.name.toLowerCase()
+            const productCategory = product.category?.toLowerCase() || ''
+            const mainCategoryName = selectedMainCat.name.toLowerCase()
+            
+            // Exact main category match
+            const mainMatch = productCategory === mainCategoryName
+            
+            // Check subcategory matches
             const subMatch = selectedMainCat.subcategories?.some(sub => 
-              product.category?.toLowerCase() === sub.name.toLowerCase()
-            )
-            console.log('Main category match:', mainMatch, 'subcategory match:', subMatch, 'product category:', product.category, 'main category name:', selectedMainCat.name)
-            return mainMatch || subMatch
+              productCategory === sub.name.toLowerCase()
+            ) || false
+            
+            // Also check if product category contains main category name (for hierarchical matching)
+            const containsMatch = productCategory.includes(mainCategoryName) || mainCategoryName.includes(productCategory)
+            
+            console.log('Main category match:', mainMatch, 'subcategory match:', subMatch, 'contains match:', containsMatch, 'product category:', productCategory, 'main category name:', mainCategoryName)
+            return mainMatch || subMatch || containsMatch
           }
           
           // Also check if the selected category is a subcategory
@@ -309,9 +262,11 @@ const ShopPage = () => {
       const matchesSizes = selectedSizes.length === 0 || selectedSizes.includes(product.size || '')
       
       const finalMatch = matchesSearch && matchesCategory && matchesPriceRange && matchesRatings && matchesSizes
-      console.log('Product final match result:', finalMatch, 'for product:', product.name)
+      console.log('Product:', product.name, 'final match result:', finalMatch, 'matchesSearch:', matchesSearch, 'matchesCategory:', matchesCategory, 'matchesPriceRange:', matchesPriceRange)
       return finalMatch
     })
+
+    console.log('Filtered products count:', filtered.length)
 
     // Sort products
     switch (sortBy) {
@@ -325,6 +280,16 @@ const ShopPage = () => {
         return filtered.sort((a, b) => b.name.localeCompare(a.name))
       case 'rating':
         return filtered.sort((a, b) => b.rating - a.rating)
+      case 'featured':
+        // Sort by featured status first, then by other criteria
+        return filtered.sort((a, b) => {
+          const aFeatured = a.featured ? 1 : 0
+          const bFeatured = b.featured ? 1 : 0
+          if (aFeatured !== bFeatured) {
+            return bFeatured - aFeatured // Featured products first
+          }
+          return 0 // Maintain original order for same featured status
+        })
       default:
         return filtered
     }
@@ -391,7 +356,7 @@ const ShopPage = () => {
           className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-shop_dark_green/80 text-white p-2 rounded-full shadow-lg hover:bg-shop_dark_green transition-all duration-200 z-10"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7 7z" />
           </svg>
         </button>
         <button
@@ -399,7 +364,7 @@ const ShopPage = () => {
           className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-shop_dark_green/80 text-white p-2 rounded-full shadow-lg hover:bg-shop_dark_green transition-all duration-200 z-10"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7-7 7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7z" />
           </svg>
         </button>
 

@@ -10,7 +10,7 @@ import { useCategories } from '@/hooks/useCategories'
 export default function EditProductPage() {
   const router = useRouter()
   const params = useParams()
-  const id = params.id as string
+  const id = decodeURIComponent(params.id as string)
   const [form, setForm] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -296,10 +296,12 @@ export default function EditProductPage() {
                   alt="Product preview" 
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.currentTarget.src = '';
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.parentElement?.classList.add('bg-gradient-to-br', 'from-gray-100', 'to-gray-200');
-                    e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center"><div class="text-gray-400 text-center"><div class="w-8 h-8 bg-gray-300 rounded mx-auto mb-1"></div><p class="text-xs">Invalid URL</p></div></div>';
+                    if (e.currentTarget && e.currentTarget.parentElement) {
+                      e.currentTarget.src = '';
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.parentElement.classList.add('bg-gradient-to-br', 'from-gray-100', 'to-gray-200');
+                      e.currentTarget.parentElement.innerHTML = '<div class="w-full h-full flex items-center justify-center"><div class="text-gray-400 text-center"><div class="w-8 h-8 bg-gray-300 rounded mx-auto mb-1"></div><p class="text-xs">Invalid URL</p></div></div>';
+                    }
                   }}
                 />
               </div>

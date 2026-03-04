@@ -145,7 +145,7 @@ export default function DashboardProductsPage() {
                 </td>
                 <td className="px-4 py-3">৳{p.price}</td>
                 <td className="px-4 py-3 text-right">
-                  <Link href={`/dashboard/products/${p.id}`} className="inline p-2 text-blue-600 hover:bg-blue-50 rounded">
+                  <Link href={`/dashboard/products/${encodeURIComponent(p.id)}`} className="inline p-2 text-blue-600 hover:bg-blue-50 rounded">
                     <Pencil className="w-4 h-4" />
                   </Link>
                   <button 

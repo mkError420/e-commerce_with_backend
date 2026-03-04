@@ -13,12 +13,13 @@ interface CartItem {
 interface CartContextType {
   cartItems: CartItem[]
   addToCart: (item: typeof productsData[0] | any, itemType: 'product' | 'deal') => void
-  removeFromCart: (itemId: number, itemType: 'product' | 'deal') => void
-  updateQuantity: (itemId: number, quantity: number, itemType: 'product' | 'deal') => void
+  removeFromCart: (itemId: number | string, itemType: 'product' | 'deal') => void
+  updateQuantity: (itemId: number | string, quantity: number, itemType: 'product' | 'deal') => void
   clearCart: () => void
+  cleanCorruptedCart: () => void
   getCartTotal: () => number
   getCartItemsCount: () => number
-  isInCart: (itemId: number, itemType: 'product' | 'deal') => boolean
+  isInCart: (itemId: number | string, itemType: 'product' | 'deal') => boolean
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -31,6 +32,13 @@ export const useCart = () => {
   return context
 }
 
+// Export a cleanup function for emergency use
+export const clearCorruptedCart = () => {
+  console.log('Emergency: Clearing corrupted cart data...')
+  localStorage.removeItem('cart')
+  window.location.reload()
+}
+
 interface CartProviderProps {
   children: ReactNode
 }
@@ -38,18 +46,47 @@ interface CartProviderProps {
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
 
+  // Helper function to validate cart items
+  const validateCartItem = (item: CartItem): boolean => {
+    if (item.itemType === 'product') {
+      return !!(item.product && typeof item.product.id !== 'undefined' && item.product.id !== null)
+    } else if (item.itemType === 'deal') {
+      return !!(item.deal && typeof item.deal.id !== 'undefined' && item.deal.id !== null)
+    }
+    return false
+  }
+
   // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem('cart')
     if (savedCart) {
       try {
         const parsedCart = JSON.parse(savedCart)
+        
+        // Check if the parsed cart is an array
+        if (!Array.isArray(parsedCart)) {
+          console.error('Cart data is not an array, clearing corrupted data')
+          localStorage.removeItem('cart')
+          return
+        }
+        
+        // Filter out invalid items before processing
+        const validCartItems = parsedCart.filter((item: CartItem) => validateCartItem(item))
+        console.log('Valid cart items after filtering:', validCartItems)
+        
+        // If all items are invalid, clear the cart
+        if (validCartItems.length === 0 && parsedCart.length > 0) {
+          console.log('All cart items are invalid, clearing cart')
+          localStorage.removeItem('cart')
+          return
+        }
+        
         // Refresh product data for items in cart
         const refreshCartItems = async () => {
           const uniqueItems = new Map()
           
           // First, ensure we have unique items by itemType and ID
-          parsedCart.forEach((cartItem: CartItem) => {
+          validCartItems.forEach((cartItem: CartItem) => {
             const itemId = cartItem.itemType === 'product' ? cartItem.product?.id : cartItem.deal?.id
             const key = `${cartItem.itemType}-${itemId}`
             if (!uniqueItems.has(key)) {
@@ -100,11 +137,24 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems))
+    // Only save if we have valid items
+    if (cartItems.length > 0) {
+      const validItems = cartItems.filter(validateCartItem)
+      localStorage.setItem('cart', JSON.stringify(validItems))
+    } else {
+      localStorage.setItem('cart', JSON.stringify([]))
+    }
   }, [cartItems])
 
   const addToCart = (item: typeof productsData[0] | any, itemType: 'product' | 'deal') => {
     console.log(`addToCart called with ${itemType}:`, itemType === 'product' ? item.name : item.title) // Debug log
+    
+    // Validate the item before adding to cart
+    if (!item || typeof item.id === 'undefined' || item.id === null) {
+      console.error('Cannot add item to cart: invalid item or missing ID', { item, itemType })
+      return
+    }
+    
     setCartItems(prev => {
       const itemId = itemType === 'product' ? item.id : item.id
       const existingItem = prev.find(cartItem => {
@@ -134,12 +184,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     })
   }
 
-  const removeFromCart = (itemId: number, itemType: 'product' | 'deal') => {
+  const removeFromCart = (itemId: number | string, itemType: 'product' | 'deal') => {
     console.log('removeFromCart called:', { itemId, itemType })
     setCartItems(prev => {
       const newItems = prev.filter(item => {
         if (item.itemType === itemType) {
           const currentItemId = itemType === 'product' ? item.product?.id : item.deal?.id
+          console.log('Comparing:', { currentItemId, targetItemId: itemId, match: currentItemId === itemId })
           return currentItemId !== itemId
         }
         return true
@@ -149,7 +200,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     })
   }
 
-  const updateQuantity = (itemId: number, quantity: number, itemType: 'product' | 'deal') => {
+  const updateQuantity = (itemId: number | string, quantity: number, itemType: 'product' | 'deal') => {
     if (quantity < 1) return
     setCartItems(prev => 
       prev.map(item => {
@@ -166,6 +217,14 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const clearCart = () => {
     setCartItems([])
+    localStorage.removeItem('cart')
+  }
+
+  // Utility function to clean corrupted cart data
+  const cleanCorruptedCart = () => {
+    console.log('Cleaning corrupted cart data...')
+    setCartItems([])
+    localStorage.removeItem('cart')
   }
 
   const getCartTotal = () => {
@@ -183,7 +242,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     return cartItems.reduce((sum, item) => sum + item.quantity, 0)
   }
 
-  const isInCart = (itemId: number, itemType: 'product' | 'deal') => {
+  const isInCart = (itemId: number | string, itemType: 'product' | 'deal') => {
     return cartItems.some(item => {
       if (item.itemType === itemType) {
         const currentItemId = itemType === 'product' ? item.product?.id : item.deal?.id
@@ -199,6 +258,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     removeFromCart,
     updateQuantity,
     clearCart,
+    cleanCorruptedCart,
     getCartTotal,
     getCartItemsCount,
     isInCart

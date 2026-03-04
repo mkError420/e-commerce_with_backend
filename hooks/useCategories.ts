@@ -19,27 +19,30 @@ export const useCategories = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        console.log('useCategories: Starting to fetch categories...')
         setLoading(true)
         const data = await api.categories.list()
-        console.log('Raw API categories data:', data)
+        console.log('useCategories: Raw API categories data:', data)
+        console.log('useCategories: Data type:', typeof data)
+        console.log('useCategories: Is array?', Array.isArray(data))
         
         // Build hierarchical structure
         const mainCategories = data.filter((cat: Category) => !cat.parentId)
         const subcategories = data.filter((cat: Category) => cat.parentId)
         
-        console.log('Main categories:', mainCategories)
-        console.log('Subcategories:', subcategories)
+        console.log('useCategories: Main categories:', mainCategories)
+        console.log('useCategories: Subcategories:', subcategories)
         
         const structuredCategories = mainCategories.map((main: Category) => ({
           ...main,
           subcategories: subcategories.filter((sub: Category) => sub.parentId === main.id)
         }))
         
-        console.log('Structured categories:', structuredCategories)
+        console.log('useCategories: Structured categories:', structuredCategories)
         setCategories(structuredCategories)
       } catch (err) {
+        console.error('useCategories: Error fetching categories:', err)
         setError('Failed to fetch categories')
-        console.error('Error fetching categories:', err)
       } finally {
         setLoading(false)
       }

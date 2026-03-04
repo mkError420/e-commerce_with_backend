@@ -123,12 +123,12 @@ const ProductTicker = () => {
                   {[...Array(5)].map((_, i) => (
                     <Star 
                       key={i} 
-                      className={`w-3 h-3 ${i < Math.floor(product.rating) ? 'fill-current' : 'fill-gray-300'}`} 
+                      className={`w-3 h-3 ${i < Math.floor(Number(product.rating)) ? 'fill-current' : 'fill-gray-300'}`} 
                     />
                   ))}
                 </div>
                 <span className='text-xs text-gray-600 ml-1'>
-                  {product.rating?.toFixed(1)} ({product.reviews || 0})
+                  {Number(product.rating).toFixed(1)} ({product.reviews || 0})
                 </span>
               </>
             ) : (
@@ -139,11 +139,11 @@ const ProductTicker = () => {
           {/* Price - Fixed height */}
           <div className='flex items-center justify-between h-6 flex-shrink-0 mt-auto'>
             <span className='text-lg font-bold text-shop_dark_green'>
-              ${product.price?.toFixed(2)}
+              ${Number(product.price).toFixed(2)}
             </span>
-            {product.originalPrice && product.originalPrice > product.price && (
+            {product.originalPrice && Number(product.originalPrice) > Number(product.price) && (
               <span className='text-xs text-gray-500 line-through'>
-                ${product.originalPrice?.toFixed(2)}
+                ${Number(product.originalPrice).toFixed(2)}
               </span>
             )}
           </div>

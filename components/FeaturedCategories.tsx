@@ -63,59 +63,7 @@ const colorMap: { [key: string]: string } = {
 const FeaturedCategories = () => {
   const { categories, loading, error } = useCategories()
 
-  // Fallback categories if API fails - now 6 categories for mobile
-  const fallbackCategories = [
-    {
-      id: '1',
-      title: 'Electronics',
-      slug: 'electronics',
-      href: '/categories/electronics',
-      icon: Smartphone,
-      color: 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-    },
-    {
-      id: '2',
-      title: 'Fashion',
-      slug: 'fashion',
-      href: '/categories/fashion',
-      icon: Shirt,
-      color: 'bg-pink-100 text-pink-600 hover:bg-pink-200'
-    },
-    {
-      id: '3',
-      title: 'Home & Living',
-      slug: 'home',
-      href: '/categories/home',
-      icon: Home,
-      color: 'bg-green-100 text-green-600 hover:bg-green-200'
-    },
-    {
-      id: '4',
-      title: 'Books',
-      slug: 'books',
-      href: '/categories/books',
-      icon: Book,
-      color: 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
-    },
-    {
-      id: '5',
-      title: 'Health & Beauty',
-      slug: 'health',
-      href: '/categories/health',
-      icon: Heart,
-      color: 'bg-red-100 text-red-600 hover:bg-red-200'
-    },
-    {
-      id: '6',
-      title: 'More',
-      slug: 'more',
-      href: '/categories',
-      icon: ShoppingBag,
-      color: 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-    }
-  ]
-
-  const displayCategories = loading ? fallbackCategories : categories.slice(0, 6)
+  const displayCategories = categories.slice(0, 6)
 
   const getCategoryIcon = (category: any) => {
     // If category has a custom icon (uploaded from Admin Dashboard), use it
