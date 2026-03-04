@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import { useSlideCart } from '@/contexts/SlideCartContext'
-import { productsData } from '@/constants/data'
+import { api } from '@/lib/api-client'
 
 const ProductDetailPage = () => {
   const params = useParams()
@@ -40,6 +40,8 @@ const ProductDetailPage = () => {
   const [isInWishlist, setIsInWishlist] = useState(false)
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [modalImageIndex, setModalImageIndex] = useState(0)
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([])
+  const [relatedLoading, setRelatedLoading] = useState(false)
 
   // Function to get image URL without cache-busting for SSR consistency
   const getImageUrl = (imageUrl: string | undefined): string => {
@@ -115,15 +117,15 @@ const ProductDetailPage = () => {
 
   useEffect(() => {
     setLoading(true)
-    fetch(`/api/products/${id}`).then(r => r.json()).then(d => {
-      if (d?.data) {
-        setProduct(d.data)
+    api.products.get(id).then(productData => {
+      if (productData) {
+        setProduct(productData)
         
         // Sync quantity with cart if product is already in cart
-        if (d.data) {
+        if (productData) {
           // Check both string and number ID formats for compatibility
-          const productId = d.data.id
-          const productIdNum = Number(d.data.id)
+          const productId = productData.id
+          const productIdNum = Number(productData.id)
           
           const isInCartString = isInCart(productId, 'product')
           const isInCartNumber = isInCart(productIdNum, 'product')
@@ -149,6 +151,23 @@ const ProductDetailPage = () => {
       setLoading(false)
     })
   }, [id, isInCart])
+
+  // Fetch related products when current product is loaded
+  useEffect(() => {
+    if (product && product.category) {
+      setRelatedLoading(true)
+      api.products.list().then(allProducts => {
+        const related = allProducts
+          .filter(p => p.category === product.category && p.id !== product.id)
+          .slice(0, 4)
+        setRelatedProducts(related)
+        setRelatedLoading(false)
+      }).catch(error => {
+        console.error('Error fetching related products:', error)
+        setRelatedLoading(false)
+      })
+    }
+  }, [product])
 
   // Load reviews from localStorage on component mount
   React.useEffect(() => {
@@ -1122,14 +1141,40 @@ const ProductDetailPage = () => {
         {/* Related Products */}
         <div className='mt-16'>
           <h2 className='text-2xl font-bold text-gray-900 mb-8'>Related Products</h2>
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
-            {productsData
-              .filter(p => p.category === product.category && p.id !== product.id)
-              .slice(0, 4)
-              .map(relatedProduct => (
+          {relatedLoading ? (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className='bg-white rounded-xl shadow-sm p-6'>
+                  <div className='animate-pulse'>
+                    <div className='w-full h-48 bg-gray-200 rounded-lg mb-4'></div>
+                    <div className='h-4 bg-gray-200 rounded mb-2'></div>
+                    <div className='h-4 bg-gray-200 rounded w-3/4'></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : relatedProducts.length > 0 ? (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+              {relatedProducts.map(relatedProduct => (
                 <div key={relatedProduct.id} className='bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-6'>
                   <div className='w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg mb-4 flex items-center justify-center'>
-                    <div className='w-16 h-16 bg-gray-300 rounded'></div>
+                    {relatedProduct.image ? (
+                      <img 
+                        src={relatedProduct.image} 
+                        alt={relatedProduct.name}
+                        className='w-full h-full object-cover rounded-lg'
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center"><div class="w-16 h-16 bg-gray-300 rounded"></div></div>';
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className='w-16 h-16 bg-gray-300 rounded'></div>
+                    )}
                   </div>
                   <h3 className='font-semibold text-gray-900 mb-2 line-clamp-2'>{relatedProduct.name}</h3>
                   <div className='flex items-center justify-between'>
@@ -1143,7 +1188,12 @@ const ProductDetailPage = () => {
                   </div>
                 </div>
               ))}
-          </div>
+            </div>
+          ) : (
+            <div className='text-center py-8'>
+              <p className='text-gray-500'>No related products found.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

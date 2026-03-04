@@ -40,7 +40,15 @@
       "category": "Smartphones & Accessories",
       "description": "ThinkPad L13 2-in-1 Gen 5 (13” Intel)| 13 inch 2-in-2 compact laptop powered by Intel Core CPU | Lenovo Bangladesh",
       "size": "",
-      "stock": 100
+      "stock": 100,
+      "images": [
+        "https://p3-ofp.static.pub//fes/cms/2024/12/26/a95m3ujigs7g89r8dy8u6tuk4bawdc795866.png",
+        "https://techmarvels.com.bd/wp-content/uploads/2025/12/IdeaPad_Slim_3_14IRH10_CT2_08-768x768.webp",
+        "https://p1-ofp.static.pub//fes/cms/2024/03/07/zpuzenaiwgirevtfhwakefypg46ff5766229.jpg",
+        "https://www.dearit.com.bd/image/cache/catalog/Lenovo/lenovo-thinkpad-l490-laptop-i5-8th-8-256-gb-laptop-3-500x500.jpg"
+      ],
+      "mainCategory": "Electronics",
+      "subcategory": "Smartphones & Accessories"
     }
   ],
   "categories": [
