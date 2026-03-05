@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Upload, X } from 'lucide-react'
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Upload, X, Search } from 'lucide-react'
 import { api } from '@/lib/api-client'
 
 interface Category {
@@ -23,6 +23,7 @@ export default function DashboardCategoriesPage() {
   const [form, setForm] = useState({ title: '', slug: '', href: '', parentId: '', isMain: false, icon: '' })
   const [iconPreview, setIconPreview] = useState<string>('')
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => { 
     api.categories.list().then((data: Category[]) => {
@@ -133,6 +134,30 @@ export default function DashboardCategoriesPage() {
     setIconPreview('')
   }
 
+  // Filter categories based on search term
+  const filterCategories = (categories: Category[], term: string): Category[] => {
+    if (!term.trim()) return categories
+    
+    return categories.filter(category => {
+      const matchesMain = category.title.toLowerCase().includes(term.toLowerCase()) ||
+                          category.slug.toLowerCase().includes(term.toLowerCase()) ||
+                          category.href.toLowerCase().includes(term.toLowerCase())
+      
+      const filteredSubcategories = category.subcategories 
+        ? filterCategories(category.subcategories, term)
+        : []
+      
+      return matchesMain || filteredSubcategories.length > 0
+    }).map(category => ({
+      ...category,
+      subcategories: category.subcategories 
+        ? filterCategories(category.subcategories, term)
+        : []
+    }))
+  }
+
+  const filteredCategories = filterCategories(categories, searchTerm)
+
   const renderCategoryRow = (category: Category, level: number = 0) => (
     <React.Fragment key={category.id}>
       <tr className="border-b hover:bg-gray-50">
@@ -165,8 +190,24 @@ export default function DashboardCategoriesPage() {
         <td className="px-4 py-3 text-gray-600">{category.slug}</td>
         <td className="px-4 py-3 text-gray-600">{category.href}</td>
         <td className="px-4 py-3 text-right">
-          <button onClick={() => handleEdit(category)} className="p-2 text-blue-600 hover:bg-blue-50 rounded mr-2"><Pencil className="w-4 h-4" /></button>
-          <button onClick={() => handleDelete(category.id, category.title)} className="p-2 text-red-600 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4" /></button>
+          <div className="flex items-center gap-2 justify-end">
+            <button 
+              onClick={() => handleEdit(category)} 
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all duration-200 text-sm font-medium"
+              title="Edit Category"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Edit
+            </button>
+            <button 
+              onClick={() => handleDelete(category.id, category.title)} 
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg transition-all duration-200 text-sm font-medium"
+              title="Delete Category"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete
+            </button>
+          </div>
         </td>
       </tr>
       {expandedCategories.has(category.id) && category.subcategories?.map(sub => 
@@ -183,6 +224,20 @@ export default function DashboardCategoriesPage() {
         <button onClick={() => { resetForm(); setShowForm(!showForm) }} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
           <Plus className="w-4 h-4" /> {editingCategory ? 'Edit Category' : 'Add Category'}
         </button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="bg-white rounded-xl shadow p-4 mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search categories by title, slug, or href..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-shop_dark_green"
+          />
+        </div>
       </div>
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 mb-6 max-w-2xl">
@@ -319,9 +374,17 @@ export default function DashboardCategoriesPage() {
             </tr>
           </thead>
           <tbody>
-            {categories.map(category => renderCategoryRow(category))}
+            {filteredCategories.map(category => renderCategoryRow(category))}
           </tbody>
         </table>
+        {filteredCategories.length === 0 && (
+          <p className="p-8 text-center text-gray-500">
+            {searchTerm 
+              ? 'No categories found matching your search.' 
+              : 'No categories yet. Add your first category!'
+            }
+          </p>
+        )}
       </div>
     </div>
   )
