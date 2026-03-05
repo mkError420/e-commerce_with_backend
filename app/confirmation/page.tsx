@@ -32,9 +32,37 @@ const PaymentConfirmationContent = () => {
     const amount = searchParams?.get('amount') || '0'
     const items = searchParams?.get('items') || '0'
     const paymentMethod = searchParams?.get('method') || 'Card'
+    const orderNumber = searchParams?.get('order') || orderId
+    
+    // Try to get cart items from localStorage for real order data
+    let realOrderItems: any[] = []
+    try {
+      const cartData = localStorage.getItem('cart')
+      if (cartData) {
+        const parsedCart = JSON.parse(cartData)
+        realOrderItems = parsedCart.map((item: any) => ({
+          name: item.product?.name || item.deal?.name || 'Unknown Product',
+          price: item.product?.price || item.deal?.price || 0,
+          quantity: item.quantity || 1
+        }))
+      }
+    } catch (error) {
+      console.error('Error reading cart data:', error)
+    }
+    
+    // If no cart data, use basic order info from URL params
+    if (realOrderItems.length === 0) {
+      const itemCount = parseInt(items) || 1
+      const avgPrice = parseFloat(amount) / itemCount
+      realOrderItems = Array.from({ length: itemCount }, (_, i) => ({
+        name: `Order Item ${i + 1}`,
+        price: avgPrice,
+        quantity: 1
+      }))
+    }
     
     setOrderDetails({
-      orderNumber: orderId,
+      orderNumber: orderNumber,
       amount: parseFloat(amount) || 0,
       items: parseInt(items) || 0,
       paymentMethod: paymentMethod,
@@ -46,23 +74,7 @@ const PaymentConfirmationContent = () => {
       customerEmail: searchParams?.get('email') || 'customer@example.com',
       customerAddress: searchParams?.get('address') || '123 Main Street, Dhaka',
       customerDistrict: searchParams?.get('district') || 'Dhaka',
-      products: [
-        {
-          name: 'Premium T-Shirt',
-          price: 29.99,
-          quantity: 1
-        },
-        {
-          name: 'Classic Jeans',
-          price: 49.99,
-          quantity: 1
-        },
-        {
-          name: 'Sports Shoes',
-          price: 69.99,
-          quantity: 1
-        }
-      ]
+      products: realOrderItems
     })
   }, [searchParams])
 
@@ -171,7 +183,7 @@ const PaymentConfirmationContent = () => {
       pdf.text('Price', tableStartX + (tableWidth * (colWidths[0] + colWidths[1] + colWidths[2])) + 2, yPosition + 5)
       yPosition += 8
       
-      // Table data rows - display each product
+      // Table data rows - display each product from real order
       orderDetails.products.forEach((product, index) => {
         pdf.setDrawColor(200, 200, 200) // Light gray border
         pdf.setFillColor(255, 255, 255) // White background
