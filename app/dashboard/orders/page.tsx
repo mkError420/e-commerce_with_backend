@@ -12,7 +12,15 @@ export default function DashboardOrdersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showExportDropdown, setShowExportDropdown] = useState(false)
 
-  useEffect(() => { api.orders.list().then(setOrders).finally(() => setLoading(false)) }, [])
+  useEffect(() => { 
+    api.orders.list().then(orders => {
+      // Sort orders by creation date (newest first)
+      const sortedOrders = orders.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      setOrders(sortedOrders)
+    }).finally(() => setLoading(false)) 
+  }, [])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -70,9 +78,15 @@ export default function DashboardOrdersPage() {
     setUpdatingId(orderId)
     try {
       const updatedOrder = await api.orders.update(orderId, { status: newStatus })
-      setOrders(prev => prev.map(order => 
-        order.id === orderId ? updatedOrder : order
-      ))
+      setOrders(prev => {
+        const updatedOrders = prev.map(order => 
+          order.id === orderId ? updatedOrder : order
+        )
+        // Re-sort to maintain order (newest first)
+        return updatedOrders.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      })
     } catch (error) {
       console.error('Failed to update order status:', error)
     } finally {
@@ -84,9 +98,15 @@ export default function DashboardOrdersPage() {
     setUpdatingId(orderId)
     try {
       const updatedOrder = await api.orders.update(orderId, { paymentStatus: newPaymentStatus })
-      setOrders(prev => prev.map(order => 
-        order.id === orderId ? updatedOrder : order
-      ))
+      setOrders(prev => {
+        const updatedOrders = prev.map(order => 
+          order.id === orderId ? updatedOrder : order
+        )
+        // Re-sort to maintain order (newest first)
+        return updatedOrders.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      })
     } catch (error) {
       console.error('Failed to update payment status:', error)
     } finally {
@@ -484,7 +504,10 @@ export default function DashboardOrdersPage() {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-gray-600">{new Date(o.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-gray-600">
+                  <div>{new Date(o.createdAt).toLocaleDateString()}</div>
+                  <div className="text-xs text-gray-500">{new Date(o.createdAt).toLocaleTimeString()}</div>
+                </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <button
