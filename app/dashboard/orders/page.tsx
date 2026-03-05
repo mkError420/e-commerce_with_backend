@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Eye, Save, Download, Search, ChevronDown } from 'lucide-react'
+import { Eye, Save, Download, Search, ChevronDown, TrendingUp, TrendingDown, Package, DollarSign, Users, ShoppingCart, BarChart3, PieChart, Calendar, Filter } from 'lucide-react'
 import { api } from '@/lib/api-client'
 
 export default function DashboardOrdersPage() {
@@ -11,6 +11,50 @@ export default function DashboardOrdersPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [showExportDropdown, setShowExportDropdown] = useState(false)
+  const [dateRange, setDateRange] = useState('7days')
+  const [showDatePicker, setShowDatePicker] = useState(false)
+
+  // Calculate statistics
+  const calculateStats = () => {
+    const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0)
+    const totalOrders = orders.length
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
+    const pendingOrders = orders.filter(order => order.status === 'pending').length
+    const completedOrders = orders.filter(order => order.status === 'delivered').length
+    const paidOrders = orders.filter(order => order.paymentStatus === 'paid').length
+    const cancelledOrders = orders.filter(order => order.status === 'cancelled').length
+    
+    // Calculate growth (mock data for demonstration)
+    const revenueGrowth = 12.5
+    const ordersGrowth = 8.3
+    
+    return {
+      totalRevenue,
+      totalOrders,
+      avgOrderValue,
+      pendingOrders,
+      completedOrders,
+      paidOrders,
+      cancelledOrders,
+      revenueGrowth,
+      ordersGrowth
+    }
+  }
+
+  const stats = calculateStats()
+
+  // Status distribution for pie chart
+  const statusDistribution = [
+    { name: 'Pending', value: orders.filter(o => o.status === 'pending').length, color: '#eab308' },
+    { name: 'Confirmed', value: orders.filter(o => o.status === 'confirmed').length, color: '#3b82f6' },
+    { name: 'Processing', value: orders.filter(o => o.status === 'processing').length, color: '#8b5cf6' },
+    { name: 'Shipped', value: orders.filter(o => o.status === 'shipped').length, color: '#6366f1' },
+    { name: 'Delivered', value: orders.filter(o => o.status === 'delivered').length, color: '#10b981' },
+    { name: 'Cancelled', value: orders.filter(o => o.status === 'cancelled').length, color: '#ef4444' }
+  ]
+
+  // Recent orders for timeline
+  const recentOrders = orders.slice(0, 5)
 
   useEffect(() => { 
     api.orders.list().then(orders => {
@@ -410,8 +454,244 @@ export default function DashboardOrdersPage() {
   if (loading) return <div className="animate-pulse h-64 bg-gray-200 rounded" />
   return (
     <div>
+      {/* Dashboard Diagram Section */}
+      <div className="mb-8">
+        {/* Header with Date Filter */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Orders Dashboard</h2>
+            <p className="text-gray-600 mt-1">Monitor your orders and sales performance</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <button
+                onClick={() => setShowDatePicker(!showDatePicker)}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <Calendar className="w-4 h-4" />
+                {dateRange === '7days' ? 'Last 7 Days' : dateRange === '30days' ? 'Last 30 Days' : 'Today'}
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              {showDatePicker && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                  <button
+                    onClick={() => { setDateRange('today'); setShowDatePicker(false) }}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700"
+                  >
+                    Today
+                  </button>
+                  <button
+                    onClick={() => { setDateRange('7days'); setShowDatePicker(false) }}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700"
+                  >
+                    Last 7 Days
+                  </button>
+                  <button
+                    onClick={() => { setDateRange('30days'); setShowDatePicker(false) }}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700"
+                  >
+                    Last 30 Days
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">৳{stats.totalRevenue.toLocaleString()}</p>
+                <div className="flex items-center mt-2">
+                  <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                  <span className="text-sm text-green-600">+{stats.revenueGrowth}%</span>
+                </div>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <DollarSign className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Orders</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{stats.totalOrders}</p>
+                <div className="flex items-center mt-2">
+                  <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                  <span className="text-sm text-green-600">+{stats.ordersGrowth}%</span>
+                </div>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg">
+                <ShoppingCart className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Avg Order Value</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">৳{Math.round(stats.avgOrderValue).toLocaleString()}</p>
+                <div className="flex items-center mt-2">
+                  <Package className="w-4 h-4 text-gray-600 mr-1" />
+                  <span className="text-sm text-gray-600">Per order</span>
+                </div>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <BarChart3 className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pending Orders</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{stats.pendingOrders}</p>
+                <div className="flex items-center mt-2">
+                  <Users className="w-4 h-4 text-yellow-600 mr-1" />
+                  <span className="text-sm text-yellow-600">Need attention</span>
+                </div>
+              </div>
+              <div className="bg-yellow-100 p-3 rounded-lg">
+                <Package className="w-6 h-6 text-yellow-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Status Distribution Chart */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Order Status Distribution</h3>
+              <PieChart className="w-5 h-5 text-gray-400" />
+            </div>
+            <div className="space-y-3">
+              {statusDistribution.map((status) => (
+                <div key={status.name} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: status.color }}></div>
+                    <span className="text-sm text-gray-600">{status.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full" 
+                        style={{ 
+                          width: `${stats.totalOrders > 0 ? (status.value / stats.totalOrders) * 100 : 0}%`,
+                          backgroundColor: status.color 
+                        }}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-medium text-gray-800 w-8">{status.value}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Performance Metrics</h3>
+              <BarChart3 className="w-5 h-5 text-gray-400" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-green-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-green-600">Completed</p>
+                    <p className="text-xl font-bold text-green-700">{stats.completedOrders}</p>
+                  </div>
+                  <div className="bg-green-100 p-2 rounded">
+                    <TrendingUp className="w-4 h-4 text-green-600" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-blue-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-blue-600">Paid</p>
+                    <p className="text-xl font-bold text-blue-700">{stats.paidOrders}</p>
+                  </div>
+                  <div className="bg-blue-100 p-2 rounded">
+                    <DollarSign className="w-4 h-4 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-yellow-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-yellow-600">Pending</p>
+                    <p className="text-xl font-bold text-yellow-700">{stats.pendingOrders}</p>
+                  </div>
+                  <div className="bg-yellow-100 p-2 rounded">
+                    <Package className="w-4 h-4 text-yellow-600" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-red-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-red-600">Cancelled</p>
+                    <p className="text-xl font-bold text-red-700">{stats.cancelledOrders}</p>
+                  </div>
+                  <div className="bg-red-100 p-2 rounded">
+                    <TrendingDown className="w-4 h-4 text-red-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Orders Timeline */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Recent Orders</h3>
+            <Link href="/dashboard/orders" className="text-sm text-blue-600 hover:text-blue-700">
+              View all orders →
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {recentOrders.map((order) => (
+              <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white p-2 rounded-lg">
+                    <ShoppingCart className="w-4 h-4 text-gray-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">{order.orderNumber}</p>
+                    <p className="text-sm text-gray-600">{order.name} • ৳{order.total?.toLocaleString()}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor[order.status] || 'bg-gray-100 text-gray-800'}`}>
+                    {order.status}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {recentOrders.length === 0 && (
+              <p className="text-center text-gray-500 py-8">No recent orders found</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Original Orders Section */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">Orders</h2>
+        <h2 className="text-xl font-semibold text-gray-800">All Orders</h2>
         <div className="flex items-center gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
