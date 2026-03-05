@@ -6,10 +6,20 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const code = searchParams.get('code')
+    const id = searchParams.get('id')
     const active = searchParams.get('active')
     
     const db = await getDb()
     let coupons = [...(db.coupons || [])]
+    
+    // Filter by specific ID (for admin editing)
+    if (id) {
+      const coupon = coupons.find(c => c.id === id)
+      if (!coupon) {
+        return apiError('Coupon not found', 404)
+      }
+      return apiSuccess(coupon)
+    }
     
     // Filter by specific code
     if (code) {

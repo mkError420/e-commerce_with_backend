@@ -473,5 +473,21 @@
       "isActive": true,
       "position": 0
     }
+  ],
+  "coupons": [
+    {
+      "id": "mmd28coo8mflrpk8fkq",
+      "code": "SAVE40",
+      "discountType": "percentage",
+      "discountValue": 40,
+      "minAmount": 500,
+      "usageLimit": 2,
+      "usedCount": 0,
+      "expiresAt": "2026-03-06T14:03",
+      "description": "use this Coupon for flat 40% discount",
+      "isActive": true,
+      "createdAt": "2026-03-05T06:03:50.712Z",
+      "updatedAt": "2026-03-05T06:09:48.362Z"
+    }
   ]
 }

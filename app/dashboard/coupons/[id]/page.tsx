@@ -22,7 +22,7 @@ interface Coupon {
   updatedAt: string
 }
 
-export default function EditCouponPage({ params }: { params: { id: string } }) {
+export default function EditCouponPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -39,14 +39,18 @@ export default function EditCouponPage({ params }: { params: { id: string } }) {
     isActive: true
   })
 
+  // Unwrap the params Promise
+  const resolvedParams = React.use(params)
+
   useEffect(() => {
-    fetchCoupon()
-  }, [params.id])
+    if (resolvedParams.id) {
+      fetchCoupon()
+    }
+  }, [resolvedParams.id])
 
   const fetchCoupon = async () => {
     try {
-      const data = await api.coupons.list()
-      const foundCoupon = data?.find((c: Coupon) => c.id === params.id)
+      const foundCoupon = await api.coupons.getById(resolvedParams.id)
       if (foundCoupon) {
         setCoupon(foundCoupon)
         setFormData({
@@ -96,7 +100,7 @@ export default function EditCouponPage({ params }: { params: { id: string } }) {
         isActive: formData.isActive
       }
 
-      await api.coupons.update(params.id, couponData)
+      await api.coupons.update(resolvedParams.id, couponData)
       router.push('/dashboard/coupons')
     } catch (error) {
       console.error('Error updating coupon:', error)

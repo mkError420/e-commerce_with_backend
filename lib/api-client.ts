@@ -118,6 +118,7 @@ export const api = {
     list: (params?: { code?: string; active?: string }) =>
       fetchApi<any[]>(`/coupons${params ? '?' + new URLSearchParams(params as any) : ''}`),
     get: (code: string) => fetchApi<any>(`/coupons?code=${encodeURIComponent(code)}`),
+    getById: (id: string) => fetchApi<any>(`/coupons?id=${encodeURIComponent(id)}`),
     create: (data: any) => fetchApi<any>('/coupons', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
     update: (id: string, data: any) => fetchApi<any>(`/coupons?id=${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
     delete: (id: string) => fetchApi<any>(`/coupons?id=${id}`, { method: 'DELETE' })
