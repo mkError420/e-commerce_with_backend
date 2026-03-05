@@ -2,10 +2,30 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { api } from '@/lib/api-client';
+
+interface Coupon {
+  id: string
+  code: string
+  discountType: 'percentage' | 'fixed'
+  discountValue: number
+  minAmount: number
+  maxDiscount?: number
+  usageLimit?: number
+  usedCount: number
+  expiresAt?: string
+  description: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
 
 const OfferPopup = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [timeLeft, setTimeLeft] = useState(20);
+  const [activeCoupons, setActiveCoupons] = useState<Coupon[]>([]);
+  const [currentCouponIndex, setCurrentCouponIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -13,6 +33,9 @@ const OfferPopup = () => {
     // Only show popup on home page
     if (pathname === '/') {
       setIsVisible(true);
+      
+      // Fetch active coupons
+      fetchActiveCoupons();
       
       // Auto-hide after 20 seconds
       const timer = setInterval(() => {
@@ -30,6 +53,27 @@ const OfferPopup = () => {
     }
   }, [pathname]);
 
+  const fetchActiveCoupons = async () => {
+    try {
+      const coupons = await api.coupons.list({ active: 'true' });
+      setActiveCoupons(coupons || []);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching coupons:', error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Rotate through coupons every 5 seconds
+    if (activeCoupons.length > 1 && isVisible) {
+      const interval = setInterval(() => {
+        setCurrentCouponIndex((prev) => (prev + 1) % activeCoupons.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [activeCoupons.length, isVisible]);
+
   const handleClose = () => {
     setIsVisible(false);
   };
@@ -39,7 +83,43 @@ const OfferPopup = () => {
     router.push('/shop');
   };
 
-  if (!isVisible) return null;
+  const handleUseCoupon = () => {
+    setIsVisible(false);
+    router.push('/cart');
+  };
+
+  const formatDiscount = (coupon: Coupon) => {
+    if (coupon.discountType === 'percentage') {
+      return `${coupon.discountValue}% OFF`;
+    } else {
+      return `৳${coupon.discountValue} OFF`;
+    }
+  };
+
+  const isExpired = (expiresAt?: string) => {
+    if (!expiresAt) return false;
+    return new Date(expiresAt) < new Date();
+  };
+
+  const getExpiryText = (expiresAt?: string) => {
+    if (!expiresAt) return 'No expiry';
+    const expiryDate = new Date(expiresAt);
+    const today = new Date();
+    const diffTime = expiryDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return 'Expired';
+    if (diffDays === 0) return 'Expires today';
+    if (diffDays === 1) return 'Expires tomorrow';
+    return `Expires in ${diffDays} days`;
+  };
+
+  if (!isVisible || loading) return null;
+  
+  // Only show if there are active coupons
+  if (activeCoupons.length === 0) return null;
+
+  const currentCoupon = activeCoupons[currentCouponIndex];
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-300 p-2 sm:p-4'>
@@ -72,22 +152,22 @@ const OfferPopup = () => {
           {/* Offer Badge */}
           <div className='relative z-10'>
             <div className='inline-block bg-shop_dark_green text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-bold mb-3 sm:mb-4 animate-pulse shadow-lg'>
-              LIMITED TIME OFFER
+              SPECIAL OFFER
             </div>
             
             <h2 className='text-xl sm:text-2xl md:text-3xl font-bold mb-2 text-shop_orange drop-shadow-lg'>
-              Special Discount!
+              {currentCoupon.description || 'Limited Time Offer!'}
             </h2>
             <div className='text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 text-shop_dark_green drop-shadow-lg'>
-              20% OFF
+              {formatDiscount(currentCoupon)}
             </div>
             <p className='text-shop_orange mb-4 sm:mb-6 text-sm sm:text-base lg:text-lg drop-shadow-md px-2'>
-              On your first order. Use code at checkout.
+              {currentCoupon.minAmount > 0 && `Minimum order: ৳${currentCoupon.minAmount}`}
             </p>
             
             {/* Discount Code */}
             <div className='bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 sm:px-4 sm:py-3 mb-4 sm:mb-6 border-2 border-white shadow-lg'>
-              <code className='text-base sm:text-lg md:text-xl font-mono font-bold text-shop_dark_green'>FIRST20</code>
+              <code className='text-base sm:text-lg md:text-xl font-mono font-bold text-shop_dark_green'>{currentCoupon.code}</code>
             </div>
             
             {/* Timer */}
@@ -102,20 +182,29 @@ const OfferPopup = () => {
               </span>
             </div>
             
-            {/* CTA Button */}
-            <button
-              onClick={handleShopNow}
-              className='bg-white text-shop-dark-green px-6 py-2.5 sm:px-8 sm:py-3 rounded-lg font-bold hover:bg-shop-light-green hover:text-shop_orange transition-all duration-300 transform hover:scale-105 shadow-xl border-2 border-shop-light-green text-sm sm:text-base'
-            >
-              Shop Now
-            </button>
+            {/* CTA Buttons */}
+            <div className='flex gap-3 justify-center'>
+              <button
+                onClick={handleUseCoupon}
+                className='bg-white text-shop-dark-green px-4 py-2.5 sm:px-6 sm:py-3 rounded-lg font-bold hover:bg-shop-light-green hover:text-shop_orange transition-all duration-300 transform hover:scale-105 shadow-xl border-2 border-shop-light-green text-sm sm:text-base'
+              >
+                Use Coupon
+              </button>
+              <button
+                onClick={handleShopNow}
+                className='bg-shop_dark_green text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-lg font-bold hover:bg-shop_orange transition-all duration-300 transform hover:scale-105 shadow-xl text-sm sm:text-base'
+              >
+                Shop Now
+              </button>
+            </div>
           </div>
         </div>
         
         {/* Bottom Info */}
         <div className='bg-gray-50 px-4 py-3 sm:px-6 sm:py-4 text-center'>
           <p className='text-xs sm:text-sm text-gray-600'>
-            Valid for 15 days
+            {getExpiryText(currentCoupon.expiresAt)}
+            {activeCoupons.length > 1 && ` • ${activeCoupons.length} offers available`}
           </p>
         </div>
       </div>
