@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Upload, X, Search } from 'lucide-react'
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Upload, X, Search, TrendingUp, TrendingDown, Folder, FolderOpen, PieChart, BarChart3, Layers, Tag } from 'lucide-react'
 import { api } from '@/lib/api-client'
 
 interface Category {
@@ -24,6 +24,42 @@ export default function DashboardCategoriesPage() {
   const [iconPreview, setIconPreview] = useState<string>('')
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [searchTerm, setSearchTerm] = useState('')
+
+  // Calculate statistics
+  const calculateStats = () => {
+    const allCategories = categories.flatMap(cat => [cat, ...(cat.subcategories || [])])
+    const mainCategories = categories.length
+    const subcategories = allCategories.length - mainCategories
+    const categoriesWithIcons = allCategories.filter(cat => cat.icon).length
+    const categoriesWithSubcategories = categories.filter(cat => cat.subcategories && cat.subcategories.length > 0).length
+    
+    // Calculate growth (mock data for demonstration)
+    const categoriesGrowth = 8.3
+    const subcategoriesGrowth = 12.7
+    
+    return {
+      totalCategories: allCategories.length,
+      mainCategories,
+      subcategories,
+      categoriesWithIcons,
+      categoriesWithSubcategories,
+      categoriesGrowth,
+      subcategoriesGrowth
+    }
+  }
+
+  const stats = calculateStats()
+
+  // Category distribution for charts
+  const categoryDistribution = [
+    { name: 'Main Categories', value: stats.mainCategories, color: '#3b82f6' },
+    { name: 'Subcategories', value: stats.subcategories, color: '#10b981' },
+    { name: 'With Icons', value: stats.categoriesWithIcons, color: '#f59e0b' },
+    { name: 'With Subcategories', value: stats.categoriesWithSubcategories, color: '#8b5cf6' }
+  ]
+
+  // Recent categories (most recently added main categories)
+  const recentCategories = categories.slice(0, 5)
 
   useEffect(() => { 
     api.categories.list().then((data: Category[]) => {
@@ -219,8 +255,216 @@ export default function DashboardCategoriesPage() {
   if (loading) return <div className="animate-pulse h-64 bg-gray-200 rounded" />
   return (
     <div>
+      {/* Dashboard Diagram Section */}
+      <div className="mb-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Categories Dashboard</h2>
+            <p className="text-gray-600 mt-1">Monitor your category structure and organization</p>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Categories</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{stats.totalCategories}</p>
+                <div className="flex items-center mt-2">
+                  <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                  <span className="text-sm text-green-600">+{stats.categoriesGrowth}%</span>
+                </div>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Layers className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Main Categories</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{stats.mainCategories}</p>
+                <div className="flex items-center mt-2">
+                  <Folder className="w-4 h-4 text-blue-600 mr-1" />
+                  <span className="text-sm text-gray-600">Parent categories</span>
+                </div>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg">
+                <Folder className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Subcategories</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{stats.subcategories}</p>
+                <div className="flex items-center mt-2">
+                  <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                  <span className="text-sm text-green-600">+{stats.subcategoriesGrowth}%</span>
+                </div>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <FolderOpen className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">With Icons</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{stats.categoriesWithIcons}</p>
+                <div className="flex items-center mt-2">
+                  <Tag className="w-4 h-4 text-yellow-600 mr-1" />
+                  <span className="text-sm text-yellow-600">Visual categories</span>
+                </div>
+              </div>
+              <div className="bg-yellow-100 p-3 rounded-lg">
+                <Tag className="w-6 h-6 text-yellow-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Category Distribution Chart */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Category Distribution</h3>
+              <PieChart className="w-5 h-5 text-gray-400" />
+            </div>
+            <div className="space-y-3">
+              {categoryDistribution.map((category) => (
+                <div key={category.name} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: category.color }}></div>
+                    <span className="text-sm text-gray-600">{category.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full" 
+                        style={{ 
+                          width: `${stats.totalCategories > 0 ? (category.value / stats.totalCategories) * 100 : 0}%`,
+                          backgroundColor: category.color 
+                        }}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-medium text-gray-800 w-8">{category.value}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Structure Overview</h3>
+              <BarChart3 className="w-5 h-5 text-gray-400" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-blue-600">Main Categories</p>
+                    <p className="text-xl font-bold text-blue-700">{stats.mainCategories}</p>
+                  </div>
+                  <div className="bg-blue-100 p-2 rounded">
+                    <Folder className="w-4 h-4 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-green-600">Subcategories</p>
+                    <p className="text-xl font-bold text-green-700">{stats.subcategories}</p>
+                  </div>
+                  <div className="bg-green-100 p-2 rounded">
+                    <FolderOpen className="w-4 h-4 text-green-600" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-yellow-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-yellow-600">With Icons</p>
+                    <p className="text-xl font-bold text-yellow-700">{stats.categoriesWithIcons}</p>
+                  </div>
+                  <div className="bg-yellow-100 p-2 rounded">
+                    <Tag className="w-4 h-4 text-yellow-600" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-purple-600">With Subcategories</p>
+                    <p className="text-xl font-bold text-purple-700">{stats.categoriesWithSubcategories}</p>
+                  </div>
+                  <div className="bg-purple-100 p-2 rounded">
+                    <Layers className="w-4 h-4 text-purple-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Categories */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Recent Categories</h3>
+            <span className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer">
+              View all categories →
+            </span>
+          </div>
+          <div className="space-y-3">
+            {recentCategories.map((category) => (
+              <div key={category.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white p-2 rounded-lg">
+                    {category.icon ? (
+                      <img src={category.icon} alt={category.title} className="w-4 h-4 rounded" />
+                    ) : (
+                      <Folder className="w-4 h-4 text-gray-600" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">{category.title}</p>
+                    <p className="text-sm text-gray-600">{category.slug}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {category.subcategories && category.subcategories.length > 0 && (
+                    <span className="text-sm text-gray-500">
+                      {category.subcategories.length} subcategories
+                    </span>
+                  )}
+                  <span className="text-sm text-gray-500">
+                    {category.icon ? 'Has icon' : 'No icon'}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {recentCategories.length === 0 && (
+              <p className="text-center text-gray-500 py-8">No categories found</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Original Categories Section */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">Categories</h2>
+        <h2 className="text-xl font-semibold text-gray-800">All Categories</h2>
         <button onClick={() => { resetForm(); setShowForm(!showForm) }} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
           <Plus className="w-4 h-4" /> {editingCategory ? 'Edit Category' : 'Add Category'}
         </button>

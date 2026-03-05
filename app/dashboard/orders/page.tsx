@@ -56,13 +56,16 @@ export default function DashboardOrdersPage() {
 
   // Calculate statistics
   const calculateStats = () => {
-    const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0)
-    const totalOrders = orders.length
+    // Filter orders by date range for stats
+    const filteredOrdersByDate = filterOrdersByDate(orders, dateRange, tableStartDate, tableEndDate)
+    
+    const totalRevenue = filteredOrdersByDate.reduce((sum, order) => sum + (order.total || 0), 0)
+    const totalOrders = filteredOrdersByDate.length
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
-    const pendingOrders = orders.filter(order => order.status === 'pending').length
-    const completedOrders = orders.filter(order => order.status === 'delivered').length
-    const paidOrders = orders.filter(order => order.paymentStatus === 'paid').length
-    const cancelledOrders = orders.filter(order => order.status === 'cancelled').length
+    const pendingOrders = filteredOrdersByDate.filter(order => order.status === 'pending').length
+    const completedOrders = filteredOrdersByDate.filter(order => order.status === 'delivered').length
+    const paidOrders = filteredOrdersByDate.filter(order => order.paymentStatus === 'paid').length
+    const cancelledOrders = filteredOrdersByDate.filter(order => order.status === 'cancelled').length
     
     // Calculate growth (mock data for demonstration)
     const revenueGrowth = 12.5
@@ -83,18 +86,19 @@ export default function DashboardOrdersPage() {
 
   const stats = calculateStats()
 
-  // Status distribution for pie chart
+  // Status distribution for pie chart (using filtered orders)
+  const filteredOrdersForStats = filterOrdersByDate(orders, dateRange, tableStartDate, tableEndDate)
   const statusDistribution = [
-    { name: 'Pending', value: orders.filter(o => o.status === 'pending').length, color: '#eab308' },
-    { name: 'Confirmed', value: orders.filter(o => o.status === 'confirmed').length, color: '#3b82f6' },
-    { name: 'Processing', value: orders.filter(o => o.status === 'processing').length, color: '#8b5cf6' },
-    { name: 'Shipped', value: orders.filter(o => o.status === 'shipped').length, color: '#6366f1' },
-    { name: 'Delivered', value: orders.filter(o => o.status === 'delivered').length, color: '#10b981' },
-    { name: 'Cancelled', value: orders.filter(o => o.status === 'cancelled').length, color: '#ef4444' }
+    { name: 'Pending', value: filteredOrdersForStats.filter(o => o.status === 'pending').length, color: '#eab308' },
+    { name: 'Confirmed', value: filteredOrdersForStats.filter(o => o.status === 'confirmed').length, color: '#3b82f6' },
+    { name: 'Processing', value: filteredOrdersForStats.filter(o => o.status === 'processing').length, color: '#8b5cf6' },
+    { name: 'Shipped', value: filteredOrdersForStats.filter(o => o.status === 'shipped').length, color: '#6366f1' },
+    { name: 'Delivered', value: filteredOrdersForStats.filter(o => o.status === 'delivered').length, color: '#10b981' },
+    { name: 'Cancelled', value: filteredOrdersForStats.filter(o => o.status === 'cancelled').length, color: '#ef4444' }
   ]
 
-  // Recent orders for timeline
-  const recentOrders = orders.slice(0, 5)
+  // Recent orders for timeline (using filtered orders)
+  const recentOrders = filteredOrdersForStats.slice(0, 5)
 
   useEffect(() => { 
     api.orders.list().then(orders => {
@@ -531,33 +535,101 @@ export default function DashboardOrdersPage() {
           <div className="flex items-center gap-4">
             <div className="relative">
               <button
-                onClick={() => setShowDatePicker(!showDatePicker)}
+                onClick={() => setShowTableCalendar(!showTableCalendar)}
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <Calendar className="w-4 h-4" />
-                {dateRange === '7days' ? 'Last 7 Days' : dateRange === '30days' ? 'Last 30 Days' : 'Today'}
-                <ChevronDown className="w-4 h-4" />
+                <span className="text-sm">
+                  {dateRange === 'all' ? 'All Dates' : 
+                   dateRange === 'today' ? 'Today' : 
+                   dateRange === '7days' ? 'Last 7 Days' : 
+                   dateRange === '30days' ? 'Last 30 Days' :
+                   dateRange === 'custom' && tableStartDate && tableEndDate ?
+                   `${new Date(tableStartDate).toLocaleDateString()} - ${new Date(tableEndDate).toLocaleDateString()}` :
+                   'Custom Range'}
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showTableCalendar ? 'rotate-180' : ''}`} />
               </button>
-              {showDatePicker && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                  <button
-                    onClick={() => { setDateRange('today'); setShowDatePicker(false) }}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700"
-                  >
-                    Today
-                  </button>
-                  <button
-                    onClick={() => { setDateRange('7days'); setShowDatePicker(false) }}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700"
-                  >
-                    Last 7 Days
-                  </button>
-                  <button
-                    onClick={() => { setDateRange('30days'); setShowDatePicker(false) }}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700"
-                  >
-                    Last 30 Days
-                  </button>
+              {showTableCalendar && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                  <div className="p-3">
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => { setDateRange('all'); setShowTableCalendar(false) }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
+                      >
+                        All Dates
+                      </button>
+                      <button
+                        onClick={() => { setDateRange('today'); setShowTableCalendar(false) }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
+                      >
+                        Today
+                      </button>
+                      <button
+                        onClick={() => { setDateRange('7days'); setShowTableCalendar(false) }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
+                      >
+                        Last 7 Days
+                      </button>
+                      <button
+                        onClick={() => { setDateRange('30days'); setShowTableCalendar(false) }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
+                      >
+                        Last 30 Days
+                      </button>
+                      <button
+                        onClick={() => { setDateRange('custom'); setShowTableCalendar(false); setTimeout(() => setShowTableCalendar(true), 100) }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded border-t border-gray-200"
+                      >
+                        Custom Range
+                      </button>
+                    </div>
+                    
+                    {/* Custom Date Picker */}
+                    {dateRange === 'custom' && (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <div className="space-y-2">
+                          <div>
+                            <label className="text-xs font-medium text-gray-600 mb-1 block">Start Date</label>
+                            <input
+                              type="date"
+                              value={tableStartDate}
+                              onChange={(e) => setTableStartDate(e.target.value)}
+                              max={tableEndDate || new Date().toISOString().split('T')[0]}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-gray-600 mb-1 block">End Date</label>
+                            <input
+                              type="date"
+                              value={tableEndDate}
+                              onChange={(e) => setTableEndDate(e.target.value)}
+                              min={tableStartDate}
+                              max={new Date().toISOString().split('T')[0]}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div className="flex gap-2 pt-2">
+                            <button
+                              onClick={() => { setDateRange('all'); setTableStartDate(''); setTableEndDate('') }}
+                              className="flex-1 px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                            >
+                              Clear
+                            </button>
+                            <button
+                              onClick={() => setShowTableCalendar(false)}
+                              disabled={!tableStartDate || !tableEndDate}
+                              className="flex-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Apply
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Pencil, Trash2, Filter, Search, Download, ChevronDown, Package, AlertCircle, TrendingUp, TrendingDown } from 'lucide-react'
+import { Plus, Pencil, Trash2, Filter, Search, Download, ChevronDown, Package, AlertCircle, TrendingUp, TrendingDown, PieChart, BarChart3, DollarSign, ShoppingCart, Archive, Tag } from 'lucide-react'
 import { api } from '@/lib/api-client'
 import { useCategories } from '@/hooks/useCategories'
 
@@ -16,6 +16,59 @@ export default function DashboardProductsPage() {
   const [showExportDropdown, setShowExportDropdown] = useState(false)
   const [stockUpdates, setStockUpdates] = useState<{[key: string]: string}>({})
   const [updatingStock, setUpdatingStock] = useState<string | null>(null)
+
+  // Calculate statistics
+  const calculateStats = () => {
+    const totalProducts = products.length
+    const totalValue = products.reduce((sum, product) => sum + (product.price || 0) * (product.stock || 0), 0)
+    const avgPrice = totalProducts > 0 ? products.reduce((sum, product) => sum + (product.price || 0), 0) / totalProducts : 0
+    const outOfStock = products.filter(product => (product.stock || 0) === 0).length
+    const lowStock = products.filter(product => (product.stock || 0) > 0 && (product.stock || 0) <= 10).length
+    const inStock = products.filter(product => (product.stock || 0) > 10).length
+    const totalCategories = new Set(products.map(p => p.category)).size
+    const totalStock = products.reduce((sum, product) => sum + (product.stock || 0), 0)
+    
+    // Calculate growth (mock data for demonstration)
+    const productsGrowth = 15.2
+    const valueGrowth = 8.7
+    
+    return {
+      totalProducts,
+      totalValue,
+      avgPrice,
+      outOfStock,
+      lowStock,
+      inStock,
+      totalCategories,
+      totalStock,
+      productsGrowth,
+      valueGrowth
+    }
+  }
+
+  const stats = calculateStats()
+
+  // Stock status distribution for charts
+  const stockDistribution = [
+    { name: 'In Stock', value: stats.inStock, color: '#10b981' },
+    { name: 'Low Stock', value: stats.lowStock, color: '#f59e0b' },
+    { name: 'Out of Stock', value: stats.outOfStock, color: '#ef4444' }
+  ]
+
+  // Category distribution
+  const categoryDistribution = products.reduce((acc: any[], product) => {
+    const category = product.category || 'Uncategorized'
+    const existing = acc.find(item => item.name === category)
+    if (existing) {
+      existing.value += 1
+    } else {
+      acc.push({ name: category, value: 1, color: '#3b82f6' })
+    }
+    return acc
+  }, []).slice(0, 5) // Top 5 categories
+
+  // Recent products (most recently added)
+  const recentProducts = products.slice(0, 5)
 
   useEffect(() => { 
     loadProducts()
@@ -297,8 +350,220 @@ export default function DashboardProductsPage() {
   if (loading) return <div className="animate-pulse h-64 bg-gray-200 rounded" />
   return (
     <div>
+      {/* Dashboard Diagram Section */}
+      <div className="mb-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Products Dashboard</h2>
+            <p className="text-gray-600 mt-1">Monitor your inventory and product performance</p>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Products</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{stats.totalProducts}</p>
+                <div className="flex items-center mt-2">
+                  <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                  <span className="text-sm text-green-600">+{stats.productsGrowth}%</span>
+                </div>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Package className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Value</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">৳{stats.totalValue.toLocaleString()}</p>
+                <div className="flex items-center mt-2">
+                  <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                  <span className="text-sm text-green-600">+{stats.valueGrowth}%</span>
+                </div>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg">
+                <DollarSign className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Avg Price</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">৳{Math.round(stats.avgPrice).toLocaleString()}</p>
+                <div className="flex items-center mt-2">
+                  <Tag className="w-4 h-4 text-gray-600 mr-1" />
+                  <span className="text-sm text-gray-600">Per product</span>
+                </div>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <Tag className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Low Stock</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{stats.lowStock + stats.outOfStock}</p>
+                <div className="flex items-center mt-2">
+                  <AlertCircle className="w-4 h-4 text-yellow-600 mr-1" />
+                  <span className="text-sm text-yellow-600">Need attention</span>
+                </div>
+              </div>
+              <div className="bg-yellow-100 p-3 rounded-lg">
+                <AlertCircle className="w-6 h-6 text-yellow-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Stock Status Distribution */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Stock Status</h3>
+              <PieChart className="w-5 h-5 text-gray-400" />
+            </div>
+            <div className="space-y-3">
+              {stockDistribution.map((stock) => (
+                <div key={stock.name} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stock.color }}></div>
+                    <span className="text-sm text-gray-600">{stock.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full" 
+                        style={{ 
+                          width: `${stats.totalProducts > 0 ? (stock.value / stats.totalProducts) * 100 : 0}%`,
+                          backgroundColor: stock.color 
+                        }}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-medium text-gray-800 w-8">{stock.value}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Inventory Overview</h3>
+              <BarChart3 className="w-5 h-5 text-gray-400" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-green-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-green-600">In Stock</p>
+                    <p className="text-xl font-bold text-green-700">{stats.inStock}</p>
+                  </div>
+                  <div className="bg-green-100 p-2 rounded">
+                    <Package className="w-4 h-4 text-green-600" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-yellow-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-yellow-600">Low Stock</p>
+                    <p className="text-xl font-bold text-yellow-700">{stats.lowStock}</p>
+                  </div>
+                  <div className="bg-yellow-100 p-2 rounded">
+                    <TrendingDown className="w-4 h-4 text-yellow-600" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-red-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-red-600">Out of Stock</p>
+                    <p className="text-xl font-bold text-red-700">{stats.outOfStock}</p>
+                  </div>
+                  <div className="bg-red-100 p-2 rounded">
+                    <AlertCircle className="w-4 h-4 text-red-600" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-blue-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-blue-600">Total Stock</p>
+                    <p className="text-xl font-bold text-blue-700">{stats.totalStock}</p>
+                  </div>
+                  <div className="bg-blue-100 p-2 rounded">
+                    <Archive className="w-4 h-4 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Products */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Recent Products</h3>
+            <Link href="/dashboard/products" className="text-sm text-blue-600 hover:text-blue-700">
+              View all products →
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {recentProducts.map((product) => (
+              <div key={product.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white p-2 rounded-lg">
+                    {product.image ? (
+                      <img src={product.image} alt={product.name} className="w-6 h-6 rounded object-cover" />
+                    ) : (
+                      <Package className="w-6 h-6 text-gray-600" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">{product.name}</p>
+                    <p className="text-sm text-gray-600">{product.category || 'Uncategorized'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-800">৳{product.price}</span>
+                  <span className="text-sm text-gray-500">
+                    {product.stock || 0} units
+                  </span>
+                  {(() => {
+                    const stockStatus = getStockStatus(product.stock || 0)
+                    return (
+                      <span className={`text-xs px-2 py-1 rounded-full bg-${stockStatus.color}-100 text-${stockStatus.color}-700`}>
+                        {stockStatus.label}
+                      </span>
+                    )
+                  })()}
+                </div>
+              </div>
+            ))}
+            {recentProducts.length === 0 && (
+              <p className="text-center text-gray-500 py-8">No products found</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Original Products Section */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">Products</h2>
+        <h2 className="text-xl font-semibold text-gray-800">All Products</h2>
         <div className="flex items-center gap-4">
           <div className="relative export-dropdown">
             <button
