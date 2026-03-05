@@ -11,8 +11,48 @@ export default function DashboardOrdersPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [showExportDropdown, setShowExportDropdown] = useState(false)
-  const [dateRange, setDateRange] = useState('7days')
+  const [dateRange, setDateRange] = useState('all')
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [tableStartDate, setTableStartDate] = useState('')
+  const [tableEndDate, setTableEndDate] = useState('')
+  const [showTableCalendar, setShowTableCalendar] = useState(false)
+
+  // Filter orders by date range
+  const filterOrdersByDate = (orders: any[], range: string, startDate?: string, endDate?: string) => {
+    if (range === 'all') return orders
+    
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    
+    if (range === 'custom' && startDate && endDate) {
+      const start = new Date(startDate)
+      const end = new Date(endDate)
+      end.setHours(23, 59, 59, 999) // Include end date fully
+      return orders.filter(order => {
+        const orderDate = new Date(order.createdAt)
+        return orderDate >= start && orderDate <= end
+      })
+    }
+    
+    return orders.filter(order => {
+      const orderDate = new Date(order.createdAt)
+      
+      switch (range) {
+        case 'today':
+          return orderDate >= today
+        case '7days':
+          const sevenDaysAgo = new Date(today)
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+          return orderDate >= sevenDaysAgo
+        case '30days':
+          const thirtyDaysAgo = new Date(today)
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+          return orderDate >= thirtyDaysAgo
+        default:
+          return true
+      }
+    })
+  }
 
   // Calculate statistics
   const calculateStats = () => {
@@ -79,11 +119,17 @@ export default function DashboardOrdersPage() {
 
   const filteredOrders = orders.filter((order) => {
     const searchLower = searchTerm.toLowerCase()
-    return (
+    const matchesSearch = (
       order.orderNumber?.toLowerCase().includes(searchLower) ||
       order.phone?.toLowerCase().includes(searchLower) ||
       order.email?.toLowerCase().includes(searchLower)
     )
+    
+    // Apply date filtering
+    const dateFilteredOrders = filterOrdersByDate([order], dateRange, tableStartDate, tableEndDate)
+    const matchesDate = dateFilteredOrders.length > 0
+    
+    return matchesSearch && matchesDate
   })
 
   const statusOptions = [
@@ -320,7 +366,9 @@ export default function DashboardOrdersPage() {
   }
 
   const exportToCSV = () => {
-    const ordersToExport = searchTerm ? filteredOrders : orders
+    const filteredBySearch = searchTerm ? filteredOrders : orders
+    const ordersToExport = filterOrdersByDate(filteredBySearch, dateRange, tableStartDate, tableEndDate)
+    
     const headers = [
       'Order Number', 'Customer Name', 'Email', 'Phone', 'Address', 
       'Total Amount', 'Payment Method', 'Payment Status', 'Order Status', 
@@ -347,8 +395,12 @@ export default function DashboardOrdersPage() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
+    let dateRangeText = dateRange
+    if (dateRange === 'custom' && tableStartDate && tableEndDate) {
+      dateRangeText = `${tableStartDate}_to_${tableEndDate}`
+    }
     link.setAttribute('href', url)
-    link.setAttribute('download', `orders_export_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute('download', `orders_export_${dateRangeText}_${new Date().toISOString().split('T')[0]}.csv`)
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
@@ -357,7 +409,20 @@ export default function DashboardOrdersPage() {
   }
 
   const exportToPDF = () => {
-    const ordersToExport = searchTerm ? filteredOrders : orders
+    const filteredBySearch = searchTerm ? filteredOrders : orders
+    const ordersToExport = filterOrdersByDate(filteredBySearch, dateRange, tableStartDate, tableEndDate)
+    
+    let dateRangeText = 'All Dates'
+    if (dateRange === 'custom' && tableStartDate && tableEndDate) {
+      dateRangeText = `${new Date(tableStartDate).toLocaleDateString()} - ${new Date(tableEndDate).toLocaleDateString()}`
+    } else if (dateRange === 'today') {
+      dateRangeText = 'Today'
+    } else if (dateRange === '7days') {
+      dateRangeText = 'Last 7 Days'
+    } else if (dateRange === '30days') {
+      dateRangeText = 'Last 30 Days'
+    }
+    
     const pdfContent = `
       <html>
         <head>
@@ -379,6 +444,7 @@ export default function DashboardOrdersPage() {
             <div class="logo">mk-ShopBD</div>
             <h1>ORDERS EXPORT REPORT</h1>
             <p>Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+            <p>Date Range: ${dateRangeText}</p>
             <p>Total Orders: ${ordersToExport.length}</p>
           </div>
           
@@ -693,6 +759,108 @@ export default function DashboardOrdersPage() {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-800">All Orders</h2>
         <div className="flex items-center gap-4">
+          {/* Date Filter for Table */}
+          <div className="relative">
+            <button
+              onClick={() => setShowTableCalendar(!showTableCalendar)}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm">
+                {dateRange === 'all' ? 'All Dates' : 
+                 dateRange === 'today' ? 'Today' : 
+                 dateRange === '7days' ? 'Last 7 Days' : 
+                 dateRange === '30days' ? 'Last 30 Days' :
+                 dateRange === 'custom' && tableStartDate && tableEndDate ?
+                 `${new Date(tableStartDate).toLocaleDateString()} - ${new Date(tableEndDate).toLocaleDateString()}` :
+                 'Custom Range'}
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${showTableCalendar ? 'rotate-180' : ''}`} />
+            </button>
+            {showTableCalendar && (
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                <div className="p-3">
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => { setDateRange('all'); setShowTableCalendar(false) }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
+                    >
+                      All Dates
+                    </button>
+                    <button
+                      onClick={() => { setDateRange('today'); setShowTableCalendar(false) }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
+                    >
+                      Today
+                    </button>
+                    <button
+                      onClick={() => { setDateRange('7days'); setShowTableCalendar(false) }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
+                    >
+                      Last 7 Days
+                    </button>
+                    <button
+                      onClick={() => { setDateRange('30days'); setShowTableCalendar(false) }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
+                    >
+                      Last 30 Days
+                    </button>
+                    <button
+                      onClick={() => { setDateRange('custom'); setShowTableCalendar(false); setTimeout(() => setShowTableCalendar(true), 100) }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded border-t border-gray-200"
+                    >
+                      Custom Range
+                    </button>
+                  </div>
+                  
+                  {/* Custom Date Picker for Table */}
+                  {dateRange === 'custom' && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="space-y-2">
+                        <div>
+                          <label className="text-xs font-medium text-gray-600 mb-1 block">Start Date</label>
+                          <input
+                            type="date"
+                            value={tableStartDate}
+                            onChange={(e) => setTableStartDate(e.target.value)}
+                            max={tableEndDate || new Date().toISOString().split('T')[0]}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-600 mb-1 block">End Date</label>
+                          <input
+                            type="date"
+                            value={tableEndDate}
+                            onChange={(e) => setTableEndDate(e.target.value)}
+                            min={tableStartDate}
+                            max={new Date().toISOString().split('T')[0]}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                          <button
+                            onClick={() => { setDateRange('all'); setTableStartDate(''); setTableEndDate('') }}
+                            className="flex-1 px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                          >
+                            Clear
+                          </button>
+                          <button
+                            onClick={() => setShowTableCalendar(false)}
+                            disabled={!tableStartDate || !tableEndDate}
+                            className="flex-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -716,20 +884,34 @@ export default function DashboardOrdersPage() {
             
             {showExportDropdown && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                <button
-                  onClick={exportToCSV}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 text-gray-700"
-                >
-                  <Download className="w-4 h-4" />
-                  Export as CSV
-                </button>
-                <button
-                  onClick={exportToPDF}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 text-gray-700"
-                >
-                  <Download className="w-4 h-4" />
-                  Export as PDF
-                </button>
+                <div className="p-3 border-b border-gray-200">
+                  <p className="text-xs text-gray-600">
+                    Exporting: {dateRange === 'all' ? 'All Dates' : 
+                               dateRange === 'today' ? 'Today' : 
+                               dateRange === '7days' ? 'Last 7 Days' : 
+                               dateRange === '30days' ? 'Last 30 Days' :
+                               dateRange === 'custom' && tableStartDate && tableEndDate ?
+                               `${new Date(tableStartDate).toLocaleDateString()} - ${new Date(tableEndDate).toLocaleDateString()}` :
+                               'Custom Range'}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">{filteredOrders.length} orders</p>
+                </div>
+                <div className="p-2">
+                  <button
+                    onClick={exportToCSV}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center gap-2 text-gray-700 rounded"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span className="text-sm">Export as CSV</span>
+                  </button>
+                  <button
+                    onClick={exportToPDF}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center gap-2 text-gray-700 rounded"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span className="text-sm">Export as PDF</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
