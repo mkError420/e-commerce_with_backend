@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Pencil, Trash2, Filter, Search, Download, ChevronDown } from 'lucide-react'
+import { Plus, Pencil, Trash2, Filter, Search, Download, ChevronDown, Package, AlertCircle, TrendingUp, TrendingDown } from 'lucide-react'
 import { api } from '@/lib/api-client'
 import { useCategories } from '@/hooks/useCategories'
 
@@ -14,10 +14,25 @@ export default function DashboardProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [showFilters, setShowFilters] = useState(false)
   const [showExportDropdown, setShowExportDropdown] = useState(false)
+  const [stockUpdates, setStockUpdates] = useState<{[key: string]: string}>({})
+  const [updatingStock, setUpdatingStock] = useState<string | null>(null)
 
   useEffect(() => { 
-    api.products.list().then(setProducts).finally(() => setLoading(false)) 
+    loadProducts()
   }, [])
+
+  const loadProducts = async () => {
+    setLoading(true)
+    try {
+      const productsData = await api.products.list()
+      console.log('Products loaded:', productsData.length, 'items')
+      setProducts(productsData)
+    } catch (error) {
+      console.error('Error loading products:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     api.categories.list().then((data: any[]) => {
@@ -63,6 +78,74 @@ export default function DashboardProductsPage() {
     if (!confirm(`Delete "${name}"?`)) return
     await api.products.delete(id)
     setProducts(prev => prev.filter(p => p.id !== id))
+  }
+
+  const getStockStatus = (stock: number) => {
+    if (stock === 0) return { status: 'out', color: 'red', icon: AlertCircle, label: 'Out of Stock' }
+    if (stock <= 10) return { status: 'low', color: 'orange', icon: TrendingDown, label: 'Low Stock' }
+    if (stock <= 50) return { status: 'medium', color: 'yellow', icon: Package, label: 'Medium Stock' }
+    return { status: 'high', color: 'green', icon: TrendingUp, label: 'In Stock' }
+  }
+
+  const handleStockUpdate = async (productId: string, newStock: number) => {
+    if (newStock < 0) return
+    
+    setUpdatingStock(productId)
+    try {
+      const product = products.find(p => p.id === productId)
+      if (!product) return
+      
+      console.log(`Updating stock for product ${productId} from ${product.stock} to ${newStock}`)
+      
+      // Update via API
+      const updatedProduct = await api.products.update(productId, { ...product, stock: newStock })
+      
+      console.log('Stock update successful:', updatedProduct)
+      
+      // Update local state with response data
+      setProducts(prev => prev.map(p => 
+        p.id === productId ? { ...p, stock: newStock } : p
+      ))
+      
+      // Clear stock update input
+      setStockUpdates(prev => ({ ...prev, [productId]: '' }))
+      
+      // Show success feedback
+      console.log(`Stock updated successfully for ${product.name}`)
+      
+    } catch (error) {
+      console.error('Error updating stock:', error)
+      alert(`Failed to update stock: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      
+      // Refresh products to ensure data consistency
+      try {
+        const freshProducts = await api.products.list()
+        setProducts(freshProducts)
+      } catch (refreshError) {
+        console.error('Error refreshing products:', refreshError)
+      }
+    } finally {
+      setUpdatingStock(null)
+    }
+  }
+
+  const handleQuickStockAdjust = (productId: string, adjustment: number) => {
+    const product = products.find(p => p.id === productId)
+    if (!product) return
+    
+    const newStock = Math.max(0, (product.stock || 0) + adjustment)
+    handleStockUpdate(productId, newStock)
+  }
+
+  const handleStockInputChange = (productId: string, value: string) => {
+    setStockUpdates(prev => ({ ...prev, [productId]: value }))
+  }
+
+  const handleStockInputSubmit = (productId: string, value: string) => {
+    const newStock = parseInt(value)
+    if (!isNaN(newStock) && newStock >= 0) {
+      handleStockUpdate(productId, newStock)
+    }
   }
 
   const exportToCSV = () => {
@@ -303,6 +386,7 @@ export default function DashboardProductsPage() {
               <th className="text-left px-4 py-3 font-medium text-gray-700">Name</th>
               <th className="text-left px-4 py-3 font-medium text-gray-700">Category</th>
               <th className="text-left px-4 py-3 font-medium text-gray-700">Price</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-700">Stock</th>
               <th className="text-right px-4 py-3 font-medium text-gray-700">Actions</th>
             </tr>
           </thead>
@@ -319,6 +403,77 @@ export default function DashboardProductsPage() {
                   </div>
                 </td>
                 <td className="px-4 py-3">৳{p.price}</td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-col space-y-2">
+                    {/* Stock Status Badge */}
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const stockStatus = getStockStatus(p.stock || 0)
+                        const Icon = stockStatus.icon
+                        return (
+                          <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-${stockStatus.color}-100 text-${stockStatus.color}-700`}>
+                            <Icon className="w-3 h-3" />
+                            {stockStatus.label}
+                          </div>
+                        )
+                      })()}
+                    </div>
+                    
+                    {/* Stock Quantity Display */}
+                    <div className="text-sm font-medium text-gray-900">
+                      {p.stock || 0} units
+                    </div>
+                    
+                    {/* Stock Management Controls */}
+                    <div className="flex items-center gap-1">
+                      {/* Quick Decrease Button */}
+                      <button
+                        onClick={() => handleQuickStockAdjust(p.id, -1)}
+                        disabled={updatingStock === p.id}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
+                        title="Decrease stock by 1"
+                      >
+                        <TrendingDown className="w-3 h-3" />
+                      </button>
+                      
+                      {/* Stock Input */}
+                      <input
+                        type="number"
+                        value={stockUpdates[p.id] || ''}
+                        onChange={(e) => handleStockInputChange(p.id, e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleStockInputSubmit(p.id, stockUpdates[p.id] || '')
+                          }
+                        }}
+                        placeholder={(p.stock || 0).toString()}
+                        className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        disabled={updatingStock === p.id}
+                      />
+                      
+                      {/* Quick Increase Button */}
+                      <button
+                        onClick={() => handleQuickStockAdjust(p.id, 1)}
+                        disabled={updatingStock === p.id}
+                        className="p-1 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
+                        title="Increase stock by 1"
+                      >
+                        <TrendingUp className="w-3 h-3" />
+                      </button>
+                      
+                      {/* Update Button */}
+                      {(stockUpdates[p.id] && stockUpdates[p.id] !== (p.stock || 0).toString()) && (
+                        <button
+                          onClick={() => handleStockInputSubmit(p.id, stockUpdates[p.id] || '')}
+                          disabled={updatingStock === p.id}
+                          className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {updatingStock === p.id ? '...' : 'Update'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <Link 

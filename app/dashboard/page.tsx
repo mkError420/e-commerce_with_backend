@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Package, Tag, Percent, FileText, ShoppingCart, TrendingUp, Activity, Users, DollarSign, ShoppingCart as ShoppingCartIcon } from 'lucide-react'
+import { Package, Tag, Percent, FileText, ShoppingCart, TrendingUp, Activity, Users, DollarSign, ShoppingCart as ShoppingCartIcon, AlertCircle, TrendingDown, TrendingUp as StockUpIcon } from 'lucide-react'
 import { api } from '@/lib/api-client'
 
 export default function DashboardPage() {
@@ -10,6 +10,13 @@ export default function DashboardPage() {
   const [recentOrders, setRecentOrders] = useState<any[]>([])
   const [topProducts, setTopProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  const getStockStatus = (stock: number) => {
+    if (stock === 0) return { status: 'out', color: 'red', icon: AlertCircle, label: 'Out of Stock', bgColor: 'bg-red-100', textColor: 'text-red-700' }
+    if (stock <= 10) return { status: 'low', color: 'orange', icon: TrendingDown, label: 'Low Stock', bgColor: 'bg-orange-100', textColor: 'text-orange-700' }
+    if (stock <= 50) return { status: 'medium', color: 'yellow', icon: Package, label: 'Medium Stock', bgColor: 'bg-yellow-100', textColor: 'text-yellow-700' }
+    return { status: 'high', color: 'green', icon: StockUpIcon, label: 'In Stock', bgColor: 'bg-green-100', textColor: 'text-green-700' }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -248,25 +255,36 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-3">
               {topProducts.length > 0 ? (
-                topProducts.map((product: any) => (
-                  <div key={product.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <Package className="w-5 h-5 text-gray-400" />
+                topProducts.map((product: any) => {
+                  const stockStatus = getStockStatus(product.stock || 0)
+                  const StockIcon = stockStatus.icon
+                  
+                  return (
+                    <div key={product.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <Package className="w-5 h-5 text-gray-400" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{product.name}</p>
+                          <p className="text-sm text-gray-500">৳{product.price}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{product.name}</p>
-                        <p className="text-sm text-gray-500">৳{product.price}</p>
+                      <div className="text-right">
+                        <div className="flex items-center gap-2 justify-end mb-1">
+                          <StockIcon className="w-3 h-3" />
+                          <span className="text-xs font-medium text-gray-600">
+                            {product.stock || 0} units
+                          </span>
+                        </div>
+                        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${stockStatus.bgColor} ${stockStatus.textColor}`}>
+                          <StockIcon className="w-3 h-3" />
+                          {stockStatus.label}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">Stock: {product.stock || 'N/A'}</p>
-                      <p className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                        {product.badge || 'Available'}
-                      </p>
-                    </div>
-                  </div>
-                ))
+                  )
+                })
               ) : (
                 <p className="text-gray-500 text-center py-4">No products available</p>
               )}

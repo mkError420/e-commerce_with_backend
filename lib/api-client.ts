@@ -77,7 +77,7 @@ export const api = {
       fetchApi<any[]>(`/products${params ? '?' + new URLSearchParams(params as any) : ''}`),
     get: (id: string) => fetchApi<any>(`/products/${encodeURIComponent(id)}`),
     create: (data: any) => fetchApi<any>('/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
-    update: (id: string, data: any) => fetchApi<any>(`/products/${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
+    update: (id: string, data: any) => fetchApi<any>(`/products?id=${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
     delete: (id: string) => fetchApi<any>(`/products?id=${id}`, { method: 'DELETE' })
   },
   categories: {
