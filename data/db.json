@@ -457,6 +457,34 @@
       "paymentMethod": "nagad",
       "paymentInfo": "GiHte67loj",
       "createdAt": "2026-03-04T10:07:47.867Z"
+    },
+    {
+      "id": "mmd2skj1nuhqp7l8e9e",
+      "orderNumber": "ORD-26PR913",
+      "status": "confirmed",
+      "paymentStatus": "paid",
+      "name": "Rabbajfvj",
+      "email": "jcsdhsd@gmail.com",
+      "phone": "01246421574",
+      "address": "Medical East Gate",
+      "district": "Rangpur",
+      "zipCode": "5400",
+      "country": "Bangladesh",
+      "items": [
+        {
+          "productId": "mmbhx4773czywi13506",
+          "name": "I phone",
+          "price": 150000,
+          "quantity": 1,
+          "itemType": "product"
+        }
+      ],
+      "subtotal": 150000,
+      "shipping": 0,
+      "total": 90000,
+      "paymentMethod": "nagad",
+      "paymentInfo": "klir78hv6mj",
+      "createdAt": "2026-03-05T06:19:33.997Z"
     }
   ],
   "users": [],
@@ -472,22 +500,6 @@
       "gradient": "to-shop_light_green",
       "isActive": true,
       "position": 0
-    }
-  ],
-  "coupons": [
-    {
-      "id": "mmd28coo8mflrpk8fkq",
-      "code": "SAVE40",
-      "discountType": "percentage",
-      "discountValue": 40,
-      "minAmount": 500,
-      "usageLimit": 2,
-      "usedCount": 0,
-      "expiresAt": "2026-03-06T14:03",
-      "description": "use this Coupon for flat 40% discount",
-      "isActive": true,
-      "createdAt": "2026-03-05T06:03:50.712Z",
-      "updatedAt": "2026-03-05T06:09:48.362Z"
     }
   ]
 }

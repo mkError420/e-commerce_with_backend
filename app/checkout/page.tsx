@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   CreditCard, 
@@ -21,6 +21,8 @@ const CheckoutPage = () => {
   const { cartItems, getCartTotal, getCartItemsCount, clearCart } = useCart()
   const router = useRouter()
   const [step, setStep] = useState(1)
+  const [discount, setDiscount] = useState(0)
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null)
   const [shippingInfo, setShippingInfo] = useState({
     name: '',
     email: '',
@@ -43,10 +45,23 @@ const CheckoutPage = () => {
   })
   const [orderPlaced, setOrderPlaced] = useState(false)
 
+  // Read coupon info from URL parameters on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const couponCode = urlParams.get('coupon')
+    const discountAmount = urlParams.get('discount')
+    
+    if (couponCode && discountAmount) {
+      setDiscount(Number(discountAmount))
+      setAppliedCoupon({ code: couponCode })
+    }
+  }, [])
+
   const subtotal = getCartTotal()
   const shipping = subtotal >= 10000 ? 0 : (shippingInfo.district.toLowerCase() === 'dhaka' ? 0 : 120)
   const tax = 0
-  const total = subtotal + shipping + tax
+  const totalAfterDiscount = subtotal - discount
+  const total = totalAfterDiscount + shipping + tax
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -78,10 +93,14 @@ const CheckoutPage = () => {
           country: shippingInfo.country,
           items,
           subtotal,
+          discount,
+          totalAfterDiscount,
           shipping,
           total,
           paymentMethod: paymentInfo.paymentMethod,
-          paymentInfo: paymentInfoStr
+          paymentInfo: paymentInfoStr,
+          couponCode: appliedCoupon?.code || null,
+          couponDiscount: discount
         })
       })
       const json = await res.json()
@@ -575,16 +594,24 @@ const CheckoutPage = () => {
 
           {/* Order Summary */}
           <div className='lg:col-span-1'>
-            <div className='bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-8'>
-              <h2 className='text-xl font-semibold text-gray-900 mb-6'>Order Summary</h2>
-              {/* ৳{getCartTotal().toFixed(2)}ms */}
-              <div className='space-y-3 mb-6 max-h-64 overflow-y-auto'>
+            <div className='bg-white/95 backdrop-blur-md border border-gray-100/50 rounded-3xl shadow-2xl sticky top-8'>
+              <div className='px-8 py-6 border-b border-gray-100/50'>
+                <h2 className='text-2xl font-bold text-gray-900 mb-6 flex items-center'>
+                  <div className='w-8 h-8 bg-gradient-to-r from-shop_dark_green to-shop_light_green rounded-full flex items-center justify-center mr-3'>
+                    <Package className='w-4 h-4 text-white' />
+                  </div>
+                  Order Summary
+                </h2>
+              </div>
+              
+              {/* Cart Items */}
+              <div className='px-8 py-6 border-b border-gray-100/50 max-h-64 overflow-y-auto'>
                 {cartItems.map((item) => {
                   const currentItem = item.itemType === 'product' ? item.product : item.deal
                   const itemId = item.itemType === 'product' ? item.product?.id : item.deal?.id
                   
                   return (
-                  <div key={`${item.itemType}-${itemId}`} className='flex items-center gap-3'>
+                  <div key={`${item.itemType}-${itemId}`} className='flex items-center gap-3 mb-4'>
                     <div className='w-12 h-12 bg-gray-200 rounded flex-shrink-0 relative overflow-hidden'>
                       {/* Use CSS background image for product image */}
                       <div 
@@ -616,37 +643,59 @@ const CheckoutPage = () => {
               </div>
 
               {/* Price Breakdown */}
-              <div className='space-y-3 border-t border-gray-200 pt-4'>
+              <div className='px-8 py-6 space-y-4'>
                 <div className='flex justify-between items-center'>
                   <span className='text-gray-600 text-sm'>Subtotal</span>
-                  <span className='font-medium text-gray-900'>৳{subtotal.toFixed(1)}</span>
+                  <span className='font-medium text-gray-900 text-lg'>৳{subtotal.toFixed(2)}</span>
                 </div>
+                
+                {discount > 0 && (
+                  <div className='flex justify-between items-center'>
+                    <span className='text-green-600 text-sm'>Discount</span>
+                    <span className='font-medium text-green-600 text-lg'>-৳{discount.toFixed(2)}</span>
+                  </div>
+                )}
                 
                 <div className='flex justify-between items-center'>
                   <span className='text-gray-600 text-sm'>Shipping</span>
-                  <span className='font-medium text-gray-900'>
+                  <span className='font-medium text-gray-900 text-lg'>
                     {shipping === 0 ? (subtotal >= 10000 ? 'FREE (Order ≥ ৳10,000)' : 'FREE (Dhaka)') : `৳${shipping.toFixed(1)} (Outside Dhaka)`}
                   </span>
                 </div>
                 
+                {appliedCoupon && (
+                  <div className='flex justify-between items-center text-xs text-green-600 bg-green-50 p-2 rounded'>
+                    <span>Coupon: {appliedCoupon.code}</span>
+                    <span>৳{discount.toFixed(2)} off</span>
+                  </div>
+                )}
                 
-                <div className='border-t border-gray-200 pt-3'>
+                <div className='border-t border-gray-200 pt-4'>
                   <div className='flex justify-between items-center'>
-                    <span className='text-lg font-light text-gray-900 tracking-wide'>Total</span>
-                    <span className='text-xl font-light text-shop_dark_green'>৳{total.toFixed(1)}</span>
+                    <span className='text-xl font-bold text-gray-900 tracking-wide'>Total</span>
+                    <span className='text-2xl font-bold text-shop_dark_green tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-shop_dark_green via-shop_light_green to-shop_dark_green bg-clip-text'>
+                      ৳{total.toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Shipping Info Notice */}
-              <div className='mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg'>
-                <p className='text-sm text-blue-700 font-medium'>
-                  {shipping === 0 ? (
-                    subtotal >= 10000 ? '✅ Free shipping on orders ৳10,000 or more!' : '✅ Free shipping within Dhaka'
-                  ) : (
-                    `৳120 shipping charge applied (outside Dhaka). Add ৳${(10000 - subtotal).toFixed(1)} more for free shipping!`
-                  )}
-                </p>
+              {/* Shipping Info */}
+              <div className='px-8 py-6 border-t border-gray-100/50'>
+                <div className='space-y-4'>
+                  <div className='flex items-center gap-3 p-4 bg-gray-50 rounded-xl'>
+                    <Truck className='w-6 h-6 text-gray-600' />
+                    <div className='text-sm text-gray-700 leading-relaxed'>
+                      <span className='font-medium'>
+                        {shipping === 0 ? (
+                          subtotal >= 10000 ? '✅ Free shipping on orders ৳10,000 or more!' : '✅ Free shipping within Dhaka'
+                        ) : (
+                          `৳120 shipping charge applied (outside Dhaka). Add ৳${(10000 - subtotal).toFixed(1)} more for free shipping!`
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

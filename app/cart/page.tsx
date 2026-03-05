@@ -534,7 +534,7 @@ const CartPage = () => {
                 <div className='px-8 py-6'>
                   <div className='grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6'>
                     <Link 
-                      href="/checkout"
+                      href={`/checkout${appliedCoupon ? `?coupon=${appliedCoupon.code}&discount=${discount}` : ''}`}
                       className='w-full px-6 py-3 lg:px-8 lg:py-4 bg-shop_dark_green text-white font-semibold rounded-lg hover:bg-shop_btn_dark_green transition-colors duration-200 flex items-center justify-center text-sm lg:text-base'
                     >
                       <CreditCard className='w-4 h-4 lg:w-5 lg:h-5 mr-2' />
