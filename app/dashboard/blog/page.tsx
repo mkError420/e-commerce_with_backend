@@ -9,7 +9,27 @@ export default function DashboardBlogPage() {
   const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { api.blog.list().then(setPosts).finally(() => setLoading(false)) }, [])
+  const fetchPosts = () => {
+    setLoading(true)
+    api.blog.list().then(setPosts).finally(() => setLoading(false))
+  }
+
+  useEffect(() => { 
+    fetchPosts()
+    
+    // Add event listener for page visibility changes to refresh when returning from edit page
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchPosts()
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
 
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Delete "${title}"?`)) return
@@ -90,7 +110,11 @@ export default function DashboardBlogPage() {
                     {post.authorName || 'Admin'}
                   </td>
                   <td className="px-4 py-3 text-gray-600 text-sm">
-                    {post.publishedAt || new Date().toISOString().split('T')[0]}
+                    <div>{new Date(post.updatedAt || post.publishedAt || post.createdAt).toLocaleDateString()}</div>
+                    <div className="text-xs text-gray-500">{new Date(post.updatedAt || post.publishedAt || post.createdAt).toLocaleTimeString()}</div>
+                    {post.updatedAt && post.updatedAt !== post.publishedAt && (
+                      <div className="text-xs text-green-600 font-medium">Updated</div>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     {post.featured && (
@@ -100,20 +124,24 @@ export default function DashboardBlogPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link 
-                      href={`/dashboard/blog/${post.id}`} 
-                      className="inline p-2 text-blue-600 hover:bg-blue-50 rounded mr-1"
-                      title="Edit"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Link>
-                    <button 
-                      onClick={() => handleDelete(post.id, post.title)} 
-                      className="inline p-2 text-red-600 hover:bg-red-50 rounded"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2 justify-end">
+                      <Link 
+                        href={`/dashboard/blog/${post.id}`} 
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all duration-200 text-sm font-medium"
+                        title="Edit Post"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        Edit
+                      </Link>
+                      <button 
+                        onClick={() => handleDelete(post.id, post.title)} 
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg transition-all duration-200 text-sm font-medium"
+                        title="Delete Post"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

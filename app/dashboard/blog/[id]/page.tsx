@@ -82,13 +82,14 @@ export default function EditBlogPage() {
         excerpt: form.excerpt,
         content: form.content,
         category: form.category || 'General',
-        authorName: form.authorName || 'Admin',
-        authorBio: form.authorBio || '',
+        authorName: form.authorName !== undefined ? form.authorName : '', // Don't override with fallback
+        authorBio: form.authorBio !== undefined ? form.authorBio : '',
         publishedAt: form.publishedAt || new Date().toISOString().split('T')[0],
         readTime: form.readTime || '5 min read',
         featured: form.featured || false,
         tags: Array.isArray(form.tags) ? form.tags : (form.tags || '').toString().split(',').map((t: string) => t.trim()).filter((t: string) => t),
-        image: form.image || ''
+        image: form.image || '',
+        updatedAt: new Date().toISOString() // Add current timestamp for edit time
       }
       
       // Only include likes and comments if they exist (preserve existing values)
