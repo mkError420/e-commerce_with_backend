@@ -6,7 +6,7 @@ import { Package, Tag, Percent, FileText, ShoppingCart, TrendingUp, Activity, Us
 import { api } from '@/lib/api-client'
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState({ products: 0, categories: 0, deals: 0, blog: 0, orders: 0, banners: 0 })
+  const [stats, setStats] = useState({ products: 0, categories: 0, deals: 0, blog: 0, orders: 0, banners: 0, coupons: 0 })
   const [recentOrders, setRecentOrders] = useState<any[]>([])
   const [topProducts, setTopProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -15,13 +15,14 @@ export default function DashboardPage() {
     const fetchData = async () => {
       try {
         // Fetch all data in parallel - single call for each endpoint
-        const [products, categories, deals, blog, orders, banners] = await Promise.all([
+        const [products, categories, deals, blog, orders, banners, coupons] = await Promise.all([
           api.products.list(),
           api.categories.list(),
           api.deals.list(),
           api.blog.list(),
           api.orders.list(),
-          api.banners.list()
+          api.banners.list(),
+          api.coupons.list()
         ])
         
         setStats({
@@ -30,7 +31,8 @@ export default function DashboardPage() {
           deals: deals?.length ?? 0,
           blog: blog?.length ?? 0,
           orders: orders?.length ?? 0,
-          banners: banners?.length ?? 0
+          banners: banners?.length ?? 0,
+          coupons: coupons?.length ?? 0
         })
 
         // Use already fetched data instead of making new API calls
@@ -56,7 +58,8 @@ export default function DashboardPage() {
     { label: 'Deals', value: stats.deals, href: '/dashboard/deals', icon: Percent, color: 'bg-orange-500' },
     { label: 'Blog Posts', value: stats.blog, href: '/dashboard/blog', icon: FileText, color: 'bg-purple-500' },
     { label: 'Orders', value: stats.orders, href: '/dashboard/orders', icon: ShoppingCart, color: 'bg-amber-500' },
-    { label: 'Banners', value: stats.banners, href: '/dashboard/banners', icon: Package, color: 'bg-indigo-500' }
+    { label: 'Banners', value: stats.banners, href: '/dashboard/banners', icon: Package, color: 'bg-indigo-500' },
+    { label: 'Coupons', value: stats.coupons, href: '/dashboard/coupons', icon: Tag, color: 'bg-pink-500' }
   ]
 
   return (

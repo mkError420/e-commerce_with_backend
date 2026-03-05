@@ -37,6 +37,9 @@ const CartPage = () => {
   const [couponCode, setCouponCode] = React.useState('')
   const [discount, setDiscount] = React.useState(0)
   const [shipping, setShipping] = React.useState(0)
+  const [appliedCoupon, setAppliedCoupon] = React.useState<any>(null)
+  const [couponError, setCouponError] = React.useState('')
+  const [couponLoading, setCouponLoading] = React.useState(false)
 
   // Function to add cache-busting parameter
   const getImageUrl = (imageUrl: string | undefined): string => {
@@ -55,14 +58,74 @@ const CartPage = () => {
   const totalItems = getCartItemsCount()
 
   // Apply coupon
-  const applyCoupon = () => {
-    if (couponCode === 'SAVE10') {
-      setDiscount(subtotal * 0.1)
-    } else if (couponCode === 'SAVE20') {
-      setDiscount(subtotal * 0.2)
-    } else {
-      setDiscount(0)
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code')
+      return
     }
+
+    setCouponLoading(true)
+    setCouponError('')
+
+    try {
+      const response = await fetch(`/api/coupons?code=${encodeURIComponent(couponCode.trim())}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setCouponError('Invalid coupon code')
+        } else if (response.status === 400) {
+          setCouponError('Coupon is expired or inactive')
+        } else {
+          setCouponError('Failed to apply coupon')
+        }
+        setDiscount(0)
+        setAppliedCoupon(null)
+        return
+      }
+
+      const coupon = data.data || data
+      console.log('Coupon validated:', coupon)
+
+      // Check minimum amount requirement
+      if (coupon.minAmount > 0 && subtotal < coupon.minAmount) {
+        setCouponError(`Minimum order amount of ৳${coupon.minAmount} required`)
+        setDiscount(0)
+        setAppliedCoupon(null)
+        return
+      }
+
+      // Calculate discount
+      let calculatedDiscount = 0
+      if (coupon.discountType === 'percentage') {
+        calculatedDiscount = subtotal * (coupon.discountValue / 100)
+        // Apply maximum discount limit if set
+        if (coupon.maxDiscount && calculatedDiscount > coupon.maxDiscount) {
+          calculatedDiscount = coupon.maxDiscount
+        }
+      } else {
+        calculatedDiscount = coupon.discountValue
+      }
+
+      setDiscount(calculatedDiscount)
+      setAppliedCoupon(coupon)
+      setCouponError('')
+    } catch (error) {
+      console.error('Error applying coupon:', error)
+      setCouponError('Failed to apply coupon')
+      setDiscount(0)
+      setAppliedCoupon(null)
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  // Remove coupon
+  const removeCoupon = () => {
+    setCouponCode('')
+    setDiscount(0)
+    setAppliedCoupon(null)
+    setCouponError('')
   }
 
   // Get recommended products
@@ -345,31 +408,68 @@ const CartPage = () => {
                 {/* Coupon Code */}
                 <div className='px-8 py-6 border-b border-gray-100/50'>
                   <label className='block text-sm font-bold text-gray-700 mb-3'>Coupon Code</label>
-                  <div className='flex gap-3'>
-                    <div className='flex-1 relative'>
-                      <input
-                        type='text'
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                        placeholder='Enter code'
-                        className='w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shop_dark_green/20 focus:border-shop_dark_green/50 bg-white/80 backdrop-blur-sm text-sm'
-                      />
-                      <div className='absolute right-3 top-1/2 transform -translate-y-1/2'>
+                  
+                  {appliedCoupon ? (
+                    // Applied coupon display
+                    <div className='p-4 bg-green-50 border border-green-200 rounded-xl'>
+                      <div className='flex items-center justify-between mb-2'>
+                        <div className='flex items-center gap-2'>
+                          <div className='w-4 h-4 bg-green-500 rounded-full'></div>
+                          <span className='text-sm font-medium text-green-800'>
+                            {appliedCoupon.code} applied
+                          </span>
+                        </div>
                         <button
-                          onClick={applyCoupon}
-                          className='bg-gradient-to-r from-shop_dark_green to-shop_light_green text-white px-4 py-3 rounded-lg font-medium hover:from-shop_dark_green hover:to-shop_light_green transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105'
+                          onClick={removeCoupon}
+                          className='text-green-600 hover:text-green-800 text-sm font-medium'
                         >
-                          Apply
+                          Remove
                         </button>
                       </div>
+                      <div className='text-xs text-green-700'>
+                        {appliedCoupon.discountType === 'percentage' 
+                          ? `${appliedCoupon.discountValue}% discount`
+                          : `৳${appliedCoupon.discountValue} off`
+                        }
+                        {appliedCoupon.description && ` • ${appliedCoupon.description}`}
+                      </div>
+                      <div className='text-xs text-green-600 mt-1'>
+                        You saved ৳{discount.toFixed(2)}
+                      </div>
                     </div>
-                  </div>
-                  {discount > 0 && (
-                    <div className='mt-3 p-4 bg-green-50 border border-green-200 rounded-xl'>
-                      <p className='text-sm text-green-700 font-medium flex items-center'>
-                        <div className='w-4 h-4 bg-green-500 rounded-full mr-2'></div>
-                        Coupon applied! You saved ${discount.toFixed(2)}
-                      </p>
+                  ) : (
+                    // Coupon input form
+                    <div className='space-y-3'>
+                      <div className='flex gap-3'>
+                        <div className='flex-1 relative'>
+                          <input
+                            type='text'
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            placeholder='Enter code'
+                            disabled={couponLoading}
+                            className='w-full px-4 py-3 pr-24 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shop_dark_green/20 focus:border-shop_dark_green/50 bg-white/80 backdrop-blur-sm text-sm disabled:opacity-50'
+                          />
+                          <div className='absolute right-2 top-1/2 transform -translate-y-1/2'>
+                            <button
+                              onClick={applyCoupon}
+                              disabled={couponLoading || !couponCode.trim()}
+                              className='bg-gradient-to-r from-shop_dark_green to-shop_light_green text-white px-3 py-2 rounded-lg font-medium hover:from-shop_dark_green hover:to-shop_light_green transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-xs'
+                            >
+                              {couponLoading ? '...' : 'Apply'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {couponError && (
+                        <div className='p-3 bg-red-50 border border-red-200 rounded-xl'>
+                          <p className='text-sm text-red-700 flex items-center'>
+                            <div className='w-4 h-4 bg-red-500 rounded-full mr-2'></div>
+                            {couponError}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

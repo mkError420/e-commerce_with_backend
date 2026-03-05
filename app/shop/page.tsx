@@ -319,9 +319,9 @@ const ShopPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Banner Carousel */}
-      <div className="relative w-full overflow-hidden" style={{ height: 'clamp(24rem, 50vw, 32rem)' }}>
+      <div className="relative w-full overflow-hidden" style={{ height: 'clamp(20rem, 45vw, 28rem)' }}>
         {bannersLoading ? (
-          <div className="relative w-full bg-gray-200 animate-pulse" style={{ height: 'clamp(24rem, 50vw, 32rem)' }}>
+          <div className="relative w-full bg-gray-200 animate-pulse" style={{ height: 'clamp(20rem, 45vw, 28rem)' }}>
             <div className="absolute inset-0 bg-gradient-to-r from-gray-300/90 to-gray-400/80 flex items-center justify-center">
               <div className="text-center text-white">
                 <div className="h-8 bg-gray-400 rounded w-3/4 mx-auto mb-4"></div>
@@ -332,7 +332,7 @@ const ShopPage = () => {
           </div>
         ) : heroSlides.length > 0 ? (
           <>
-            <div className="relative w-full" style={{ height: 'clamp(24rem, 50vw, 32rem)' }}>
+            <div className="relative w-full" style={{ height: 'clamp(20rem, 45vw, 28rem)' }}>
               <div 
                 className="flex transition-transform duration-500 ease-in-out h-full"
                 style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -342,27 +342,27 @@ const ShopPage = () => {
                     key={`${slide.id}-${index}`}
                     className="w-full flex-shrink-0"
                   >
-                    <div className="relative h-full flex">
-                      {/* Left Side - Content */}
-                      <div className={`w-1/4 h-full bg-gradient-to-r ${slide.backgroundColor} ${slide.gradient} flex items-center justify-center px-4`}>
-                        <div className="text-center text-white">
-                          <h2 className="text-xl md:text-2xl font-bold mb-2">{slide.title}</h2>
-                          <p className="text-sm md:text-base mb-3">{slide.subtitle}</p>
-                          <p className="text-xs md:text-sm mb-4 opacity-90 hidden md:block">{slide.description}</p>
+                    <div className="relative h-full flex flex-col max-md:flex-row md:flex-row lg:flex-row">
+                      {/* Content Side */}
+                      <div className={`w-full max-md:w-2/5 md:w-1/3 lg:w-1/5 xl:w-1/4 h-full max-md:h-auto md:h-auto lg:h-auto xl:h-auto bg-gradient-to-r ${slide.backgroundColor} ${slide.gradient} flex items-center justify-center px-3 max-md:px-2 md:px-4 lg:px-4 xl:px-6 py-6 max-md:py-0 md:py-0 lg:py-0 xl:py-0`}>
+                        <div className="text-center text-white max-w-full">
+                          <h2 className="text-sm max-md:text-xs md:text-base lg:text-sm xl:text-lg font-bold mb-1 max-md:mb-1 md:mb-2 lg:mb-2">{slide.title}</h2>
+                          <p className="text-xs max-md:text-xs md:text-sm lg:text-xs xl:text-sm mb-2 max-md:mb-1 md:mb-2 lg:mb-2">{slide.subtitle}</p>
+                          <p className="text-xs max-md:text-xs md:text-xs lg:text-xs xl:text-sm mb-3 max-md:mb-2 md:mb-3 lg:mb-3 opacity-90 hidden xl:block">{slide.description}</p>
                           <button
                             onClick={() => {
                               // Redirect to deals page
                               window.location.href = '/deals'
                             }}
-                            className="bg-white text-shop_dark_green px-4 py-2 rounded-lg hover:bg-shop_light_green transition-all duration-200 font-medium hover:scale-105 hover:shadow-lg text-sm"
+                            className="bg-white text-shop_dark_green px-2 py-1 max-md:px-2 max-md:py-1 md:px-3 md:py-2 lg:px-3 lg:py-2 xl:px-4 xl:py-2 rounded-lg hover:bg-shop_light_green transition-all duration-200 font-medium hover:scale-105 hover:shadow-lg text-xs max-md:text-xs md:text-xs lg:text-xs xl:text-sm"
                           >
                             Shop Now
                           </button>
                         </div>
                       </div>
                       
-                      {/* Right Side - Banner Image */}
-                      <div className="w-3/4 h-full relative">
+                      {/* Image Side */}
+                      <div className="w-full max-md:w-3/5 md:w-2/3 lg:w-4/5 xl:w-3/4 h-full max-md:h-auto md:h-auto lg:h-auto xl:h-auto relative min-h-[150px] max-md:min-h-[120px] md:min-h-[200px] lg:min-h-[220px] xl:min-h-[250px]">
                         <img 
                           src={slide.image} 
                           alt={slide.title}
@@ -382,14 +382,14 @@ const ShopPage = () => {
           </>
         ) : (
           /* Empty State */
-          <div className="relative w-full bg-gradient-to-r from-shop_dark_green to-shop_light_green" style={{ height: 'clamp(24rem, 50vw, 32rem)' }}>
+          <div className="relative w-full bg-gradient-to-r from-shop_dark_green to-shop_light_green" style={{ height: 'clamp(20rem, 45vw, 28rem)' }}>
             <div className="absolute inset-0 flex items-center justify-center px-8">
               <div className="text-center text-white">
-                <h2 className="text-3xl font-bold mb-4">Welcome to Our Shop</h2>
-                <p className="text-lg mb-6">Discover amazing products and great deals</p>
+                <h2 className="text-2xl max-md:text-xl md:text-2xl lg:text-3xl font-bold mb-4">Welcome to Our Shop</h2>
+                <p className="text-base max-md:text-sm md:text-base lg:text-lg mb-6">Discover amazing products and great deals</p>
                 <button
                   onClick={() => window.location.reload()}
-                  className="bg-white text-shop_dark_green px-8 py-3 rounded-lg hover:bg-shop_light_green transition-colors duration-200 font-medium"
+                  className="bg-white text-shop_dark_green px-6 py-2 max-md:px-4 max-md:py-2 md:px-6 md:py-2 lg:px-8 lg:py-3 rounded-lg hover:bg-shop_light_green transition-colors duration-200 font-medium text-sm max-md:text-xs md:text-sm lg:text-base"
                 >
                   Refresh Banners
                 </button>

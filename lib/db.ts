@@ -105,6 +105,22 @@ export interface Banner {
   position: number
 }
 
+export interface Coupon {
+  id: string
+  code: string
+  discountType: 'percentage' | 'fixed'
+  discountValue: number
+  minAmount: number
+  maxDiscount?: number
+  usageLimit?: number
+  usedCount: number
+  expiresAt?: string
+  description: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export interface DbSchema {
   products: Product[]
   categories: Category[]
@@ -113,6 +129,7 @@ export interface DbSchema {
   orders: Order[]
   users: { id: string; email: string; password: string; name: string; role: string }[]
   banners: Banner[]
+  coupons: Coupon[]
 }
 
 let cachedDb: DbSchema | null = null
@@ -140,7 +157,8 @@ async function readDb(): Promise<DbSchema> {
       blogPosts: [],
       orders: [],
       users: [],
-      banners: []
+      banners: [],
+      coupons: []
     }
     return cachedDb
   }

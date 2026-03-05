@@ -114,6 +114,14 @@ export const api = {
     create: (data: any) => fetchApi<any>('/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
     update: (id: string, data: any) => fetchApi<any>(`/orders?id=${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
   },
+  coupons: {
+    list: (params?: { code?: string; active?: string }) =>
+      fetchApi<any[]>(`/coupons${params ? '?' + new URLSearchParams(params as any) : ''}`),
+    get: (code: string) => fetchApi<any>(`/coupons?code=${encodeURIComponent(code)}`),
+    create: (data: any) => fetchApi<any>('/coupons', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
+    update: (id: string, data: any) => fetchApi<any>(`/coupons?id=${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
+    delete: (id: string) => fetchApi<any>(`/coupons?id=${id}`, { method: 'DELETE' })
+  },
   auth: {
     login: (email: string, password: string) =>
       fetchApi<{ token: string; email: string }>('/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) }),

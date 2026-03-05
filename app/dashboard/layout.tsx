@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, Tag, Percent, FileText, ShoppingCart, LogOut, Menu } from 'lucide-react'
+import { LayoutDashboard, Package, Tag, Percent, FileText, ShoppingCart, LogOut, Menu, Ticket } from 'lucide-react'
 import { api } from '@/lib/api-client'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -42,7 +42,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: '/dashboard/deals', label: 'Deals', icon: Percent },
     { href: '/dashboard/blog', label: 'Blog', icon: FileText },
     { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
-    { href: '/dashboard/banners', label: 'Banners', icon: Package }
+    { href: '/dashboard/banners', label: 'Banners', icon: Package },
+    { href: '/dashboard/coupons', label: 'Coupons', icon: Ticket }
   ]
 
   if (pathname === '/dashboard/login') return <>{children}</>
