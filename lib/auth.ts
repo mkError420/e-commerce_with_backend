@@ -8,6 +8,8 @@ export interface JWTPayload {
   userId: string
   email: string
   role: string
+  firstName?: string
+  lastName?: string
   exp: number
 }
 

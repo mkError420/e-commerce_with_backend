@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Container from '@/components/Container'
 import { 
   Eye, 
@@ -18,8 +19,10 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import Link from 'next/link'
+import { api } from '@/lib/api-client'
 
 const LoginPage = () => {
+  const router = useRouter()
   const [isLogin, setIsLogin] = useState(true)
   const [formData, setFormData] = useState({
     email: '',
@@ -72,12 +75,42 @@ const LoginPage = () => {
     
     setIsLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      if (isLogin) {
+        // Login user
+        const response = await api.auth.login(formData.email, formData.password)
+        setSuccess(true)
+        
+        // Redirect to user dashboard after successful login
+        setTimeout(() => {
+          router.push('/account')
+        }, 1500)
+      } else {
+        // Register user (you would need to implement this API endpoint)
+        // For now, simulate registration success
+        setSuccess(true)
+        setTimeout(() => {
+          // After successful registration, switch to login mode with email pre-filled
+          setIsLogin(true)
+          setFormData({
+            email: formData.email,
+            password: '',
+            confirmPassword: '',
+            fullName: '',
+            rememberMe: false
+          })
+          setSuccess(false) // Clear success message for login
+        }, 2000)
+      }
+    } catch (error: any) {
+      console.error('Authentication error:', error)
+      setErrors({
+        email: error.message || 'Authentication failed. Please try again.',
+        password: error.message || 'Invalid credentials'
+      })
+    } finally {
       setIsLoading(false)
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
-    }, 2000)
+    }
   }
 
   const toggleMode = () => {
@@ -152,7 +185,7 @@ const LoginPage = () => {
               <div className='bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center'>
                 <CheckCircle className='w-5 h-5 text-green-600 mr-3' />
                 <span className='text-green-800 font-medium'>
-                  {isLogin ? 'Login successful! Redirecting...' : 'Account created successfully!'}
+                  {isLogin ? 'Login successful! Redirecting to dashboard...' : 'Account created successfully! Please sign in to continue.'}
                 </span>
               </div>
             )}
