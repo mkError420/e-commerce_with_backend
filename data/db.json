@@ -20,13 +20,13 @@
       "price": 15000,
       "originalPrice": 16990,
       "image": "https://img.drz.lazcdn.com/static/bd/p/b506a3a49007f3df27f2d222b190ecb6.jpg_720x720q80.jpg",
-      "rating": "4.5",
-      "reviews": "0",
+      "rating": 4.5,
+      "reviews": 0,
       "badge": "",
       "category": "Smartphones & Accessories",
       "description": "fjsdcvn sjkfg djcvnhsdfjkvsd sdjkvdfvbhd sjvdfjkvnh bghcfsdv kfgjrtgb vhnfghn",
       "size": "",
-      "stock": 100
+      "stock": 45
     },
     {
       "id": "mmbks35eofpgkeemdu",
@@ -34,13 +34,13 @@
       "price": 76500,
       "originalPrice": 77300,
       "image": "https://p4-ofp.static.pub//fes/cms/2023/08/23/983kt3002y3un5m318o1coqa0o7hxl595568.png",
-      "rating": "4.5",
-      "reviews": "0",
+      "rating": 4.5,
+      "reviews": 0,
       "badge": "",
       "category": "Smartphones & Accessories",
       "description": "ThinkPad L13 2-in-1 Gen 5 (13” Intel)| 13 inch 2-in-2 compact laptop powered by Intel Core CPU | Lenovo Bangladesh",
       "size": "",
-      "stock": 100,
+      "stock": 56,
       "images": [
         "https://p3-ofp.static.pub//fes/cms/2024/12/26/a95m3ujigs7g89r8dy8u6tuk4bawdc795866.png",
         "https://techmarvels.com.bd/wp-content/uploads/2025/12/IdeaPad_Slim_3_14IRH10_CT2_08-768x768.webp",

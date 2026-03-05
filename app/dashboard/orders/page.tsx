@@ -120,19 +120,33 @@ export default function DashboardOrdersPage() {
         <head>
           <title>Delivery Voucher - ${order.orderNumber}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #059669; padding-bottom: 20px; }
-            .logo { font-size: 28px; font-weight: bold; color: #059669; margin-bottom: 10px; }
-            .voucher-info { margin: 20px 0; }
-            .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
-            .section-title { font-weight: bold; margin: 20px 0 10px 0; color: #059669; }
-            .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            .items-table th { background: #059669; color: white; padding: 12px; text-align: left; }
-            .items-table td { border: 1px solid #ddd; padding: 12px; }
-            .footer { text-align: center; margin-top: 30px; color: #666; }
-            .signature-section { margin-top: 40px; display: flex; justify-content: space-between; }
-            .signature-box { width: 45%; text-align: center; }
-            .signature-line { border-bottom: 1px solid #000; margin: 40px 0 10px 0; }
+            @page { margin: 15mm; size: A4; }
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 0; 
+              padding: 10px;
+              font-size: 12px;
+              line-height: 1.2;
+            }
+            .header { 
+              text-align: center; 
+              margin-bottom: 15px; 
+              border-bottom: 2px solid #059669; 
+              padding-bottom: 10px; 
+            }
+            .logo { font-size: 20px; font-weight: bold; color: #059669; margin-bottom: 5px; }
+            .logo h1 { font-size: 16px; margin: 5px 0; }
+            .voucher-info { margin: 10px 0; }
+            .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+            .section-title { font-weight: bold; margin: 10px 0 5px 0; color: #059669; font-size: 13px; }
+            .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 11px; }
+            .items-table th { background: #059669; color: white; padding: 6px; text-align: left; }
+            .items-table td { border: 1px solid #ddd; padding: 6px; }
+            .footer { text-align: center; margin-top: 15px; color: #666; font-size: 10px; }
+            .signature-section { margin-top: 20px; display: flex; justify-content: space-between; }
+            .signature-box { width: 45%; text-align: center; font-size: 10px; }
+            .signature-line { border-bottom: 1px solid #000; margin: 20px 0 5px 0; }
+            .total-row { font-weight: bold; font-size: 14px; border-top: 1px solid #ddd; padding-top: 5px; }
           </style>
         </head>
         <body>
@@ -171,7 +185,7 @@ export default function DashboardOrdersPage() {
               <span>${order.email}</span>
             </div>
             <div class="info-row">
-              <strong>Delivery Address:</strong>
+              <strong>Address:</strong>
               <span>${order.address}, ${order.district || ''}, ${order.zipCode || ''}</span>
             </div>
           </div>
@@ -181,7 +195,7 @@ export default function DashboardOrdersPage() {
             <thead>
               <tr>
                 <th>Product Name</th>
-                <th>Quantity</th>
+                <th>Qty</th>
                 <th>Unit Price</th>
                 <th>Total Price</th>
               </tr>
@@ -207,7 +221,7 @@ export default function DashboardOrdersPage() {
               <strong>Shipping:</strong>
               <span>৳${order.shipping?.toLocaleString() || '0'}</span>
             </div>
-            <div class="info-row" style="font-weight: bold; font-size: 18px; border-top: 1px solid #ddd; padding-top: 10px;">
+            <div class="info-row total-row">
               <strong>Total Amount:</strong>
               <span>৳${order.total?.toLocaleString() || '0'}</span>
             </div>
